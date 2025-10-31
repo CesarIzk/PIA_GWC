@@ -1,0 +1,234 @@
+/* Fuente redondeada tipo Arial */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+:root {
+ 
+  --rojo: rgb(255, 0, 0);
+   --naranja: #ff9b2b;
+   --naranja-claro: #ffbe73;
+  --morado-claro: #d6a7ff;
+  --texto-boton: #ffffff; /* un morado más oscuro para contraste */
+  font-family: "Poppins", sans-serif;
+}
+
+body{
+    margin: 0;
+}
+
+#btnRegresar{
+      background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+    border: 4px rgb(31, 51, 71) solid ;
+    position: absolute;
+    border-radius: 20%;
+    margin: 20px;
+    height: 90px;
+    width: 90px;
+    cursor: pointer;
+    transition: 150ms all;
+}
+
+#btnRegresar img{
+    height: 100%;
+    width: 100%;
+}
+
+#btnRegresar:hover{
+    height: 110px;
+    width: 110px;
+}
+
+/* Título */
+
+#idTitulo.container{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+    color: rgb(255, 255, 255);
+}
+
+.title{
+      background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+    color: var(--amarillo-palido);
+    border-radius: 10px;
+    border: 10px solid transparent;
+    width: 50%;
+    min-width: max-content;
+    margin: 20px;
+}
+
+.title h1{
+    margin: 7px;
+    font-family: "Poppins", sans-serif;
+    font-size: 40px;
+}
+
+.title p{
+    font-size: 20px;
+}
+
+/* Escenarios */
+/* ======== CONTENEDOR DE ESCENARIOS ======== */
+#idEscenarios.container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2rem;
+  margin-top: 2rem;
+  padding-bottom: 3rem;
+}
+
+/* ======== TARJETAS DE ESCENARIOS ======== */
+.selectStage {
+  background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+  border-radius: 10px;
+  border: 5px solid transparent;
+  width: clamp(280px, 25%, 360px); /* tamaño flexible entre 280 y 360px */
+  padding: 10px;
+  transition: 200ms all;
+  cursor: pointer;
+  position: relative;
+}
+
+.selectStage:hover {
+  transform: scale(1.05);
+  box-shadow: -5px 5px var(--rojo), -10px 10px 10px rgba(255, 0, 0, 0.6);
+}
+
+.selectStage.active {
+  transform: scale(1.05);
+  border: 4px solid #00ff88;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+}
+
+.selectStage img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.selectStage h2 {
+  font-family: "Poppins", sans-serif;
+  text-transform: uppercase;
+  font-size: 22px;
+  color: white;
+  margin-top: 10px;
+}
+
+.selectStage h3 {
+  color: #fff;
+  margin: 5px 0;
+}
+
+/* ======== PANEL "INICIAR PARTIDA" ======== */
+.chosenStage {
+  background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+  opacity: 0.5;
+  width: clamp(300px, 28%, 400px);
+  border-radius: 10px;
+  text-align: center;
+  padding: 20px;
+  transition: 200ms all;
+}
+
+[aria-disabled="false"].chosenStage {
+  opacity: 1;
+}
+
+.chosenStage h2 {
+  color: white;
+  font-size: 30px;
+  margin-bottom: 15px;
+}
+
+#btnEscenario {
+  display: block;
+  margin: 0 auto;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 26px;
+  font-family: "Poppins", sans-serif;
+  background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+  color: white;
+  border: 2px solid transparent;
+  box-shadow: -6px 6px 12px rgba(255, 0, 0, 0.7);
+  cursor: pointer;
+  transition: 200ms all;
+}
+
+.chosenStage[aria-disabled="false"] #btnEscenario:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+}
+
+.chosenStage[aria-disabled="false"] #btnEscenario:active {
+  transform: scale(0.97);
+}
+
+#btnEscenario{
+    display: block;
+    margin: -10px auto 15px auto;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 30px;
+    background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+    color: var(--amarillo-palido);
+    border: 2px solid transparent;
+    box-shadow: -6px 6px 12px rgba(255, 0, 0, 0.7);
+    width: max-content;
+    line-height: 140%;
+    font-family: "Poppins", sans-serif;
+    cursor: pointer;
+    transition: 200ms all;
+}
+
+.chosenStage[aria-disabled="false"] #btnEscenario:hover{
+   background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+    box-shadow: -6px 6px 12px rgba(255, 0, 0, 0.7);
+    color: var(--amarillo-palido);
+    font-size: 35px;
+    transition: 150ms all;
+}
+
+.chosenStage[aria-disabled="false"] #btnEscenario:active{
+      background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+    box-shadow: -6px 6px 12px rgba(255, 0, 0, 0.7);
+    font-size: 32px;
+}
+  .selectStage.active {
+      border: 4px solid #00ff88;
+      transform: scale(1.03);
+      transition: 0.2s;
+    }
+
+
+/* Fondo en movimiento*/
+
+.wrapper {
+   position: absolute;
+    top: 0; left: 0;
+    background-image: url('../Images/Backgrounds/TAREA.jpg');
+    background-size: cover;
+    background-position: center;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+
+@media (max-width: 768px) {
+  .title {
+    width: 90%;
+  }
+
+  #idEscenarios.container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .chosenStage {
+    width: 90%;
+  }
+}

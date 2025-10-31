@@ -1,0 +1,98 @@
+/* Fuente redondeada tipo Arial */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+:root {
+  --naranja: #ff9b2b;
+  --naranja-claro: #ffbe73;
+  --morado-claro: #d6a7ff;
+  --texto-boton: #ffffff; /* un morado más oscuro para contraste */
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    height: 100vh;
+    font-family: "Poppins", sans-serif;
+}
+
+/* Contenedor principal */
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+    padding: 0 280px;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 9;
+}
+
+/* Botones en columna */
+.botones {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5em;
+}
+
+/* Logo más grande */
+.logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+#idLogo {
+    width: 520px;
+}
+
+/* Botones */
+#idMenu a:link { 
+  text-decoration: none; 
+} 
+
+#idMenu button {
+    background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+    color: var(--texto-boton);
+    border: none;
+    box-shadow: -6px 6px 12px rgba(255, 0, 0, 0.7);
+    width: 260px;
+    padding: 14px;
+    font-size: 22px;
+    border-radius: 8px; /* menos curveado */
+    font-family: "Poppins", sans-serif;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: 200ms all;
+}
+
+/* Sin iconos */
+#idMenu button::before {
+    display: none;
+}
+
+/* Hover / Active */
+#idMenu button:hover {
+    background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+    box-shadow: -8px 8px 15px rgba(255, 0, 0, 0.9);
+    transform: scale(1.05);
+}
+
+#idMenu button:active {
+    background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+    box-shadow: -5px 5px 10px rgba(255, 0, 0, 0.8);
+    transform: scale(0.98);
+}
+
+/* Fondo estático */
+#fondo {
+    position: absolute;
+    top: 0; left: 0;
+    background-image: url('../Images/Backgrounds/TAREA.jpg');
+    background-size: cover;
+    background-position: center;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}

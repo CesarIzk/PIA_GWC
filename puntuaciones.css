@@ -1,0 +1,155 @@
+/* Fuente redondeada tipo Arial */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+:root {
+  
+  --amarillo-palido: rgb(255, 255, 221);
+  
+  --rojo: rgb(255, 0, 0);
+   --naranja: #ff9b2b;
+   --naranja-claro: #ffbe73;
+  --morado-claro: #b56cf6;
+  --texto-boton: #8f0069; /* un morado más oscuro para contraste */
+  
+  font-family: "Poppins", sans-serif;
+  background: rgb(237, 42, 13);
+  background-size: cover;
+}
+
+body{
+    margin: 0;
+}
+
+/* Botón de regresar */
+
+#btnRegresar{
+    background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+    border: 4px rgb(31, 51, 71) solid ;
+    position: absolute;
+    border-radius: 20%;
+    margin: 20px;
+    height: 90px;
+    width: 90px;
+    cursor: pointer;
+    transition: 150ms all;
+}
+
+#btnRegresar img{
+    height: 100%;
+    width: 100%;
+}
+
+#btnRegresar:hover{
+    height: 110px;
+    width: 110px;
+}
+
+/* Botón de Menú de Inicio */
+
+.inicio{
+    display: flex;
+    justify-content: flex-end;
+}
+
+#btnInicio{
+   background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+    border: 4px rgb(31, 51, 71) solid ;
+    position: absolute;
+    border-radius: 20%;
+    margin: 20px;
+    height: 90px;
+    width: 90px;
+    cursor: pointer;
+    transition: 150ms all;
+}
+
+#btnInicio img{
+    height: 68%;
+    width: 68%;
+}
+
+#btnInicio:hover{
+    height: 110px;
+    width: 110px;
+}
+
+/* Título */
+
+#idTitulo.container{
+    display: flex;
+    flex-direction: row;
+}
+
+.title{
+   background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+    color: var(--amarillo-palido);
+    border-radius: 10px;
+    border: 10px solid transparent;
+    min-width: max-content;
+    margin: 20px;
+    padding-inline: 10px;
+}
+
+.title h1{
+    margin: 7px;
+    font-family: "Poppins", sans-serif;
+    font-size: 40px;
+}
+
+.title p{
+    font-size: 18px;
+    margin-top: 5px;
+}
+
+
+/* Tabla */
+
+#idRecordTable{
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+table{
+    width: 60%;
+    border-radius: 30px;
+}
+
+table th{
+    background-color: var(--naranja-zanahoria);
+   background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+    border: 3px transparent solid;
+    font-size: 20px;
+}
+
+td{
+     background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+    color: var(--amarillo-palido);
+    font-size: 18px;
+}
+
+
+.position{
+    font-weight: bold;
+}
+
+.player16{
+    display: flex;
+    justify-content: left;
+    align-items: center;
+}
+
+.player16::before{
+    content: "";
+    width: 45px;
+    height: 45px;
+    margin-right: 15px;
+    margin-left: 10px;
+    
+    background-size: contain;
+}
+
+.record{
+    font-style: italic;
+}

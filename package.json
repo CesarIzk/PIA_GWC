@@ -1,0 +1,14 @@
+{
+  "name": "food-frenzy",
+  "version": "1.0.0",
+  "description": "Juego Food Frenzy con WebSocket en Node y Three.js",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "ws": "^8.18.3"
+  }
+}

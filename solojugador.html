@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FOODFRANCY | UN JUGADOR</title>
+  <link rel="stylesheet" href="solojugador.css" />
+  
+</head>
+<body>
+  <div class="wrapper">
+    <a class="nav-link" href="index.html">
+      <button id="btnRegresar" type="button">
+        <img src="Images/Iconos/IMG_6165-2.png" alt="" />
+      </button>
+    </a>
+
+    <div id="idTitulo" class="container">
+      <div class="title">
+        <h1>SOLITARIO</h1>
+        <p>SELECCIONA EL NIVEL</p>
+      </div>
+    </div>
+
+    <div id="idEscenarios" class="container">
+      <!-- Escenario 1 -->
+      <div class="selectStage" data-id="SP_Stage1">
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="radio"
+            id="SP_Stage1"
+            name="inlineRadioOptions"
+            value="option1"
+          />
+        </div>
+        <img src="Images/Escenarios/GRANJA.jpg" class="img-fluid" />
+        <div>
+          <h2>Granja</h2>
+          <h3 id="idFacil">Dificultad: Fácil</h3>
+        </div>
+      </div>
+
+      <!-- Escenario 2 -->
+      <div class="selectStage" data-id="SP_Stage2">
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="radio"
+            id="SP_Stage2"
+            name="inlineRadioOptions"
+            value="option2"
+          />
+        </div>
+        <img src="Images/Escenarios/Supermercado.jpg" class="img-fluid" />
+        <div>
+          <h2>Supermercado</h2>
+          <h3 id="idDificil">Dificultad: Difícil</h3>
+        </div>
+      </div>
+
+      <!-- Escenario 3 - CIUDAD -->
+      <div class="selectStage" data-id="SP_Stage3">
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="radio"
+            id="SP_Stage3"
+            name="inlineRadioOptions"
+            value="option3"
+          />
+        </div>
+        <img src="Images/Escenarios/CIUDAD.png" class="img-fluid" />
+        <div>
+          <h2>Ciudad</h2>
+          <h3 id="idNormal">Dificultad: Media</h3>
+        </div>
+      </div>
+
+      <div class="chosenStage" aria-disabled="true">
+        <h2>Partida de Un Jugador</h2>
+        <button id="btnEscenario" type="submit" disabled>Iniciar partida</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="solojugador.js"></script>
+</body>
+</html>

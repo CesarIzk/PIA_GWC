@@ -1,0 +1,97 @@
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #3a4a6b;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+
+    #hud {
+      position: fixed;
+      top: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .hudBox {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 15px 25px;
+      border-radius: 12px;
+      border: 2px solid #fff;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .hudBox img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 0 4px rgba(255, 0, 0, 0.6));
+    }
+
+    .playerName {
+      font-size: 14px;
+      font-weight: bold;
+      color: #ffcc00;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+      text-shadow: 0 0 8px rgba(255, 204, 0, 0.8);
+    }
+
+    .puntos {
+      font-size: 32px;
+      font-weight: bold;
+      color: white;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+      margin: 5px 0;
+    }
+
+    .controlsHint {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 5px;
+    }
+
+    /* Tiempo en el centro */
+    #tiempoBox {
+      background: rgba(255, 100, 0, 0.3);
+      border-color: #ff6400;
+    }
+
+    #tiempoBox .tiempo {
+      font-size: 36px;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 0 0 15px rgba(255, 100, 0, 1);
+    }
+
+    #tiempoBox .label {
+      font-size: 12px;
+      color: #ffcc00;
+      letter-spacing: 2px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      #hud {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .hudBox {
+        width: 90%;
+        max-width: 300px;
+      }
+
+      .puntos {
+        font-size: 28px;
+      }
+    }
+  

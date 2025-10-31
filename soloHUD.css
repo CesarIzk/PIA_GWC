@@ -1,0 +1,129 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --naranja: #ff9b2b;
+  --naranja-claro: #ffb85c;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: 'Courier New', monospace;
+}
+
+canvas {
+  display: block;
+}
+
+/* ================================
+   HUD FLOTANTE SOBRE EL ESCENARIO
+   ================================ */
+#hud {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 30px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Contenedor de vidas */
+#vidasContainer {
+  position: absolute;
+  bottom: 30px;
+  left: 30px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#vidasContainer img {
+  height: 150px; /* 👈 AJUSTA ESTE VALOR para cambiar el tamaño */
+  width: auto;
+  max-width: 200px; /* 👈 También puedes ajustar este máximo */
+  object-fit: contain;
+  image-rendering: pixelated;
+  mix-blend-mode: lighten;
+  background: transparent;
+  filter: brightness(1.2) contrast(1.1) drop-shadow(0 0 4px rgba(255, 0, 0, 0.6));
+  transform: scale(1);
+  transition: transform 0.1s ease-in-out;
+}
+
+#vidasContainer img.flash {
+  transform: scale(1.2);
+}
+
+/* Contenedor de puntos (arriba izquierda) */
+#puntosContainer {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  text-align: left;
+}
+
+/* Contenedor de tiempo (arriba derecha) */
+#tiempoContainer {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  text-align: right;
+}
+
+/* Estilo de texto tipo arcade */
+.label {
+  font-size: 14px;
+  color: var(--naranja-claro);
+  display: block;
+  text-shadow: 0 0 6px rgba(255, 155, 43, 0.8);
+  margin-bottom: 5px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.valor {
+  font-size: 24px;
+  color: white;
+  font-weight: bold;
+  text-shadow: 0 0 8px var(--naranja), 0 0 12px var(--naranja);
+}
+
+/* Flash al perder vida */
+@keyframes flashHud {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(2); }
+}
+
+.flash {
+  animation: flashHud 0.3s ease-in-out;
+}
+
+/* Adaptación móvil */
+@media (max-width: 768px) {
+  #vidasContainer img {
+    height: 28px;
+  }
+  .valor {
+    font-size: 20px;
+  }
+  .label {
+    font-size: 12px;
+  }
+  #hud {
+    padding: 15px 20px;
+  }
+  #vidasContainer,
+  #puntosContainer,
+  #tiempoContainer {
+    bottom: 20px;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+  }
+}

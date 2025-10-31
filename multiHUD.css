@@ -1,0 +1,115 @@
+/* Fuente redondeada tipo Arial */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+:root {
+  --azul-pastel: rgb(95, 143, 163);
+  --turqueza: rgb(97, 186, 164);
+  --amarillo-palido: rgb(255, 255, 221);
+  --naranja-zanahoria: rgb(255, 155, 43);
+  --verde-claro: rgb(210, 208, 71);
+
+    --rojo: rgb(255, 0, 0);
+   --naranja: #ff9b2b;
+   --naranja-claro: #ffbe73;
+  --morado-claro: #d6a7ff;
+  --texto-boton: #ffffff;
+  font-family: "Poppins", sans-serif;
+  background-color: rgba(31, 51, 71, 0.3);
+}
+
+body{
+    margin: 0;
+    overflow: hidden;
+}
+
+.container{
+	height: 100vh;
+
+    border-image: linear-gradient(to top, var(--naranja) 0%, var(--naranja-claro) 100%) 1;
+    border-width: 10px;
+    border-style: solid;
+    padding-inline: 40px;
+    padding-block: 20px;
+    
+    position: relative;
+    box-sizing: border-box;
+}
+
+.superior{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+/* Progress Bar Propio y Piezas*/
+#idPBPropio{
+    width: 220px;
+}
+
+#idPieza1, #idPieza2, #idPieza3{
+    background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+    box-shadow: -5px 5px var(--azul-pastel), -5px 5px 10px rgba(31, 51, 71, 0.7);
+    border-radius: 20px;
+    border: 6px solid transparent;
+    width: max-content;
+    height: max-content;
+
+    margin-block: 15px;
+    padding: 12px;
+    width: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Items */
+.centro-S{
+    background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+    box-shadow: 0 5px var(--verde-claro), 0 7px 10px rgba(31, 51, 71, 0.5);
+    border-radius: 20px;
+    border: 6px solid transparent;
+    width: max-content;
+    height: max-content;
+}
+
+#idItem{
+    padding: 12px;
+    width: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Tiempo y Vida */
+
+.esquina-S-Der{
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+}
+
+
+
+#idVida{
+    display: block;
+    width: 220px;
+}
+
+/* Progress Bar del resto de jugadores */
+
+.centro-I{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4em;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding-bottom: 10px;
+    box-sizing: border-box;
+}
+
+#idPBJugador2, #idPBJugador3, #idPBJugador4{
+    width: 160px;
+}

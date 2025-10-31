@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Frenzy - 2 Jugadores</title>
+ <link rel="stylesheet" href="public.css">
+</head>
+<body>
+  <div id="hud">
+    <!-- Jugador 1 -->
+    <div class="hudBox">
+      <div class="playerName">JUGADOR 1</div>
+      <img id="vidas1" src="Images/HUDs/Health3.png" alt="Vidas J1">
+      <div class="puntos" id="puntos1">000</div>
+      <div class="controlsHint">A / D</div>
+    </div>
+
+    <!-- Tiempo -->
+    <div class="hudBox" id="tiempoBox">
+      <div class="label">TIEMPO</div>
+      <div class="tiempo" id="tiempo">60</div>
+    </div>
+
+    <!-- Jugador 2 -->
+    <div class="hudBox">
+      <div class="playerName">JUGADOR 2</div>
+      <img id="vidas2" src="Images/HUDs/Health3.png" alt="Vidas J2">
+      <div class="puntos" id="puntos2">000</div>
+      <div class="controlsHint">← / →</div>
+    </div>
+  </div>
+
+  <!-- Import Map para Three.js -->
+  <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.159.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.159.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <!-- Cargar el juego -->
+  <script type="module" src="publicHUD.js"></script>
+</body>
+</html>
