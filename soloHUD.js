@@ -14,7 +14,6 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
@@ -48,9 +47,7 @@ loader.load(
     fbx.position.set(0, -1.2, 0);
     fbx.rotation.y = Math.PI;
     fbx.traverse((child) => {
-      if (child.isMesh) {
-        child.receiveShadow = true;
-      }
+      if (child.isMesh) child.receiveShadow = true;
     });
     scene.add(fbx);
     console.log("✅ Ciudad cargada correctamente.");
@@ -70,14 +67,12 @@ basketLoader.load(
     fbx.scale.set(0.015, 0.015, 0.015);
     fbx.position.set(0, 0.6, 6.5);
     fbx.rotation.y = Math.PI;
-
     fbx.traverse((child) => {
       if (child.isMesh) {
         child.castShadow = true;
         child.receiveShadow = true;
       }
     });
-
     player = fbx;
     scene.add(player);
     console.log("🏀 Canasta cargada correctamente.");
@@ -92,13 +87,20 @@ basketLoader.load(
 let puntos = 0;
 let vidas = 3;
 let tiempo = 60;
-let gravedad = 0.06; // 👈 Velocidad inicial más lenta (antes 0.12)
-const gravedadMaxima = 0.15; // 👈 Velocidad máxima más controlable (antes 0.25)
-const incrementoGravedad = 0.00003; // 👈 Incremento más gradual (antes 0.00005)
+
+// 🧲 Gravedad 40% más rápida
+let gravedad = 0.06 * 1.4; // 0.084
+const gravedadMaxima = 0.15 * 1.4; // 0.21
+const incrementoGravedad = 0.00004; // un poco más agresiva
+
 let debugVisible = false;
 let juegoActivo = true;
-
 const objetos = [];
+
+// ⚙️ Movimiento del jugador
+let velocidadJugador = 0.3;
+let suavizadoMovimiento = 0.08; // rápido y fluido
+let objetivoX = 0;
 
 // ===========================
 // CONTROLES DEL JUGADOR
@@ -107,19 +109,18 @@ const teclas = {};
 window.addEventListener("keydown", (e) => {
   teclas[e.key] = true;
 
-  // Toggle de depuración con tecla H
   if (e.key.toLowerCase() === "h") {
     debugVisible = !debugVisible;
     scene.traverse((obj) => {
-      if (obj.userData.isDebugHelper) {
-        obj.visible = debugVisible;
-      }
+      if (obj.userData.isDebugHelper) obj.visible = debugVisible;
     });
     console.log(debugVisible ? "🟩 Helpers ACTIVADOS" : "⬛ Helpers OCULTOS");
   }
 });
-
 window.addEventListener("keyup", (e) => (teclas[e.key] = false));
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") togglePausa();
+});
 
 // ===========================
 // HUD
@@ -137,6 +138,52 @@ function actualizarVidas() {
 
 function actualizarPuntos() {
   puntosHUD.textContent = String(puntos).padStart(3, "0");
+}
+
+// ===========================
+// PÉRDIDA DE VIDA Y FIN DEL JUEGO
+// ===========================
+function perderVida() {
+  if (!juegoActivo) return;
+
+  vidas = Math.max(0, vidas - 1);
+  actualizarVidas();
+
+  hud.classList.add("flash");
+  setTimeout(() => hud.classList.remove("flash"), 200);
+
+  if (vidas <= 0) {
+    terminarJuego(false);
+  }
+}
+
+function terminarJuego(victoria = false) {
+  juegoActivo = false;
+  clearInterval(timer);
+  clearInterval(spawnerInterval);
+
+  // 🧹 Limpia escena
+  objetos.forEach((obj) => {
+    scene.remove(obj);
+    if (obj.userData.debugBox) scene.remove(obj.userData.debugBox);
+  });
+  objetos.length = 0;
+
+  // 💾 Guardar puntuación
+  const nombre = prompt("💾 Ingresa tu nombre para guardar tu puntuación:") || "Anónimo";
+  let puntuaciones = JSON.parse(localStorage.getItem("puntuaciones")) || [];
+
+  puntuaciones.push({ nombre, puntos });
+  puntuaciones.sort((a, b) => b.puntos - a.puntos);
+  puntuaciones = puntuaciones.slice(0, 10);
+  localStorage.setItem("puntuaciones", JSON.stringify(puntuaciones));
+
+  const mensaje = victoria
+    ? `🎉 ¡Tiempo terminado!\n🌟 Puntos: ${puntos}`
+    : `💥 Game Over!\n🌟 Puntos: ${puntos}`;
+  alert(mensaje);
+
+  window.location.href = "puntuaciones.html";
 }
 
 // ===========================
@@ -163,34 +210,19 @@ function crearObjeto() {
   const nombreModelo = esBomba
     ? "bomba"
     : comidaModelos[Math.floor(Math.random() * comidaModelos.length)];
-
-  const modeloRuta = esBomba
-    ? bombaModelo
-    : `Assets/comida/${nombreModelo}.fbx`;
-
+  const modeloRuta = esBomba ? bombaModelo : `Assets/comida/${nombreModelo}.fbx`;
   const texturaRuta = `Assets/comida/${nombreModelo}.png`;
 
   const fbxLoader = new FBXLoader();
   fbxLoader.load(
     modeloRuta,
     (objeto) => {
-      // ============================
-      // 🔸 TEXTURA Y SOMBRAS
-      // ============================
       if (!esBomba) {
-        const textura = textureLoader.load(
-          texturaRuta,
-          undefined,
-          undefined,
-          () => console.warn("⚠️ No se pudo cargar textura:", texturaRuta)
-        );
-
+        const textura = textureLoader.load(texturaRuta);
         objeto.traverse((child) => {
           if (child.isMesh) {
-            if (child.material) child.material.dispose();
             child.material = new THREE.MeshStandardMaterial({
               map: textura,
-              color: 0xffffff,
               roughness: 0.5,
               metalness: 0.1,
             });
@@ -207,39 +239,27 @@ function crearObjeto() {
         });
       }
 
-      // ============================
-      // 🔸 ESCALA Y CENTRADO REAL
-      // ============================
       const escalaBase = esBomba ? 0.012 : 0.015;
       objeto.scale.setScalar(escalaBase);
       objeto.updateMatrixWorld(true);
 
-      // 🔹 Calcular caja y centro del modelo
       const box = new THREE.Box3().setFromObject(objeto);
       const size = new THREE.Vector3();
       const center = new THREE.Vector3();
       box.getSize(size);
       box.getCenter(center);
 
-      // 🔹 Recentrar el modelo sin moverlo fuera de vista
-      objeto.position.sub(center.multiplyScalar(0.9)); // corrige desplazamiento sin empujarlo demasiado
+      objeto.position.sub(center.multiplyScalar(0.9));
       objeto.userData.size = size.clone();
 
-      // ============================
-      // 🔸 POSICIÓN ALEATORIA INICIAL
-      // ============================
       const posX = (Math.random() - 0.5) * 8;
       const posY = 9 + Math.random() * 3;
-      objeto.position.add(new THREE.Vector3(posX, posY, 6.5)); // suma a su posición visual
+      objeto.position.add(new THREE.Vector3(posX, posY, 6.5));
 
       objeto.userData.esBomba = esBomba;
       objeto.userData.colisionado = false;
       objeto.userData.tiempoDeVida = 0;
-      objeto.userData.velocidadRotacion = Math.random() * 0.05 + 0.02;
 
-      // ============================
-      // 🔸 CAJA DE DEPURACIÓN
-      // ============================
       const color = esBomba ? 0xff0000 : 0x00aaff;
       const helperBox = new THREE.Box3().setFromObject(objeto);
       const helper = new THREE.Box3Helper(helperBox, color);
@@ -250,37 +270,25 @@ function crearObjeto() {
       scene.add(helper);
       scene.add(objeto);
       objetos.push(objeto);
-
-      console.log(`🍏 Objeto creado: ${nombreModelo} (${esBomba ? "bomba" : "comida"})`);
     },
     undefined,
     (err) => console.warn("⚠️ Error al cargar modelo:", modeloRuta, err)
   );
 }
 
-
-// Iniciar spawning
-const spawnerInterval = setInterval(() => {
-  if (juegoActivo) {
-    crearObjeto();
-  }
-}, 1500);
-
 // ===========================
 // TEMPORIZADOR
 // ===========================
+const spawnerInterval = setInterval(() => {
+  if (juegoActivo) crearObjeto();
+}, 1500);
+
 const timer = setInterval(() => {
   if (!juegoActivo) return;
-  
+
   tiempo--;
   tiempoHUD.textContent = tiempo;
-  if (tiempo <= 0) {
-    juegoActivo = false;
-    clearInterval(timer);
-    clearInterval(spawnerInterval);
-    alert(`🎮 Fin del juego\n🌟 Puntos: ${puntos}`);
-    window.location.href = "solojugador.html";
-  }
+  if (tiempo <= 0) terminarJuego(true);
 }, 1000);
 
 // ===========================
@@ -294,25 +302,25 @@ function animar() {
     return;
   }
 
-  // Movimiento del jugador
-  if (teclas["ArrowLeft"] || teclas["a"]) player.position.x -= 0.15;
-  if (teclas["ArrowRight"] || teclas["d"]) player.position.x += 0.15;
-  player.position.x = Math.max(-8, Math.min(8, player.position.x));
+  if (!juegoActivo) {
+    renderer.render(scene, camera);
+    return;
+  }
 
-  // Caja de colisión de la canasta
+  // Movimiento del jugador
+  if (teclas["ArrowLeft"] || teclas["a"]) objetivoX -= velocidadJugador;
+  if (teclas["ArrowRight"] || teclas["d"]) objetivoX += velocidadJugador;
+
+  objetivoX = Math.max(-8, Math.min(8, objetivoX));
+  player.position.x += (objetivoX - player.position.x) * (1 - suavizadoMovimiento);
+
+  // Caja de colisión
   const playerBox = new THREE.Box3().setFromCenterAndSize(
     new THREE.Vector3(player.position.x, player.position.y + 0.6, 6.5),
     new THREE.Vector3(2.8, 1.5, 0.8)
   );
 
-  // Hitbox visible del jugador
-  if (!player.userData.debugBox) {
-    const helper = new THREE.Box3Helper(playerBox, 0x00ff00);
-    helper.visible = debugVisible;
-    helper.userData.isDebugHelper = true;
-    scene.add(helper);
-    player.userData.debugBox = helper;
-  } else {
+  if (player.userData.debugBox) {
     player.userData.debugBox.box.copy(playerBox);
     player.userData.debugBox.visible = debugVisible;
   }
@@ -320,46 +328,31 @@ function animar() {
   // Movimiento y colisiones
   for (let i = objetos.length - 1; i >= 0; i--) {
     const obj = objetos[i];
-    
-    // Aplicar gravedad incremental
- // ⏳ Delay inicial antes de empezar a caer
-if (!obj.userData.tiempoDeVida) obj.userData.tiempoDeVida = 0;
-obj.userData.tiempoDeVida += 1;
+    if (!obj) continue;
 
-// Espera 30 frames (~0.5 segundos)
-if (obj.userData.tiempoDeVida > 30) {
-  obj.position.y -= gravedad;
-}
-    // Recalcular bounding box
+    obj.userData.tiempoDeVida ??= 0;
+    obj.userData.tiempoDeVida++;
+    if (obj.userData.tiempoDeVida > 30) {
+      const g = obj.userData.esBomba ? gravedad * 1.3 : gravedad;
+      obj.position.y -= g;
+    }
+
     const size = obj.userData.size || new THREE.Vector3(1, 1, 1);
     const objBox = new THREE.Box3().setFromCenterAndSize(
       obj.position.clone().add(new THREE.Vector3(0, size.y / 4, 0)),
       size.clone().multiplyScalar(0.8)
     );
 
-    // Actualizar helper
     if (obj.userData.debugBox) {
       obj.userData.debugBox.box.copy(objBox);
       obj.userData.debugBox.visible = debugVisible;
     }
 
-    // Colisión con canasta
     if (!obj.userData.colisionado && playerBox.intersectsBox(objBox)) {
       obj.userData.colisionado = true;
 
       if (obj.userData.esBomba) {
-        vidas--;
-        actualizarVidas();
-        hud.classList.add("flash");
-        setTimeout(() => hud.classList.remove("flash"), 150);
-
-        if (vidas <= 0) {
-          juegoActivo = false;
-          clearInterval(timer);
-          clearInterval(spawnerInterval);
-          alert(`💥 Game Over!\n🌟 Puntos finales: ${puntos}`);
-          window.location.href = "solojugador.html";
-        }
+        perderVida();
       } else {
         puntos += 10;
         actualizarPuntos();
@@ -369,13 +362,11 @@ if (obj.userData.tiempoDeVida > 30) {
       setTimeout(() => {
         scene.remove(obj);
         if (obj.userData.debugBox) scene.remove(obj.userData.debugBox);
-        const index = objetos.indexOf(obj);
-        if (index > -1) objetos.splice(index, 1);
+        objetos.splice(i, 1);
       }, 100);
       continue;
     }
 
-    // Eliminar si cae fuera
     if (obj.position.y < -3.5) {
       scene.remove(obj);
       if (obj.userData.debugBox) scene.remove(obj.userData.debugBox);
@@ -383,9 +374,7 @@ if (obj.userData.tiempoDeVida > 30) {
     }
   }
 
-  // Incrementar gravedad gradualmente
   gravedad = Math.min(gravedadMaxima, gravedad + incrementoGravedad);
-
   renderer.render(scene, camera);
 }
 
@@ -401,3 +390,62 @@ window.addEventListener("resize", () => {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
+// ===========================
+// MENÚ DE PAUSA
+// ===========================
+const btnPause = document.getElementById("btnPause");
+const pauseMenu = document.getElementById("pauseMenu");
+const btnResume = document.getElementById("btnResume");
+const btnRestart = document.getElementById("btnRestart");
+const btnExit = document.getElementById("btnExit");
+
+let pausaActiva = false;
+let temporizadorActivo = null;
+let spawnerActivo = null;
+
+btnPause.addEventListener("click", () => togglePausa());
+btnResume.addEventListener("click", () => togglePausa());
+
+btnRestart.addEventListener("click", () => {
+  window.location.reload();
+});
+
+btnExit.addEventListener("click", () => {
+  window.location.href = "solojugador.html";
+});
+
+function togglePausa() {
+  pausaActiva = !pausaActiva;
+
+  if (pausaActiva) {
+    // Pausar
+    juegoActivo = false;
+    clearInterval(timer);
+    clearInterval(spawnerInterval);
+    pauseMenu.classList.remove("hidden");
+  } else {
+    // Reanudar
+    juegoActivo = true;
+    pauseMenu.classList.add("hidden");
+
+    // Reinicia temporizador y spawner
+    reiniciarTemporizador();
+    reiniciarSpawner();
+  }
+}
+
+function reiniciarTemporizador() {
+  temporizadorActivo = setInterval(() => {
+    if (!juegoActivo) return;
+    tiempo--;
+    tiempoHUD.textContent = tiempo;
+    if (tiempo <= 0) terminarJuego(true);
+  }, 1000);
+}
+
+function reiniciarSpawner() {
+  spawnerActivo = setInterval(() => {
+    if (juegoActivo) crearObjeto();
+  }, 1500);
+}
