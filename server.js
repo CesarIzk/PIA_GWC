@@ -1,5 +1,5 @@
 // ==========================================
-// FOOD FRENZY - SERVIDOR WEBSOCKET (Railway + LOCAL)
+// FOOD FRENZY - SERVIDOR WEBSOCKET (Railway + Local)
 // ==========================================
 
 import { WebSocketServer } from "ws";
@@ -13,60 +13,104 @@ const wss = new WebSocketServer({ server });
 
 app.use(express.static("."));
 
-// Almacenar jugadores conectados
-let players = new Map();
+// ====================
+// 🎮 Estructura de salas
+// ====================
+const rooms = new Map(); // { code: { players: [ws1, ws2], ready: bool } }
+
+function generateCode() {
+  return Math.random().toString(36).substr(2, 5).toUpperCase();
+}
 
 wss.on("connection", (ws) => {
-  const id = Math.random().toString(36).substr(2, 9);
-  players.set(id, ws);
+  console.log("🟢 Cliente conectado");
 
-  console.log(`🟢 Jugador conectado: ${id}`);
-  ws.send(JSON.stringify({ type: "assign", id }));
-
-  // Escuchar mensajes de un jugador
   ws.on("message", (msg) => {
     try {
       const data = JSON.parse(msg);
 
-      // Reenviar posición a otros jugadores
+      // 🧩 Crear sala
+      if (data.type === "create") {
+        const code = generateCode();
+        rooms.set(code, { players: [ws], ready: false });
+        ws.roomCode = code;
+        ws.role = "player1";
+        ws.send(JSON.stringify({ type: "roomCreated", code }));
+        console.log(`🏠 Sala creada: ${code}`);
+        return;
+      }
+
+      // 🧩 Unirse a sala existente
+      if (data.type === "join") {
+        const room = rooms.get(data.code);
+        if (!room) {
+          ws.send(JSON.stringify({ type: "error", message: "Sala no encontrada." }));
+          return;
+        }
+        if (room.players.length >= 2) {
+          ws.send(JSON.stringify({ type: "error", message: "Sala llena." }));
+          return;
+        }
+
+        room.players.push(ws);
+        ws.roomCode = data.code;
+        ws.role = "player2";
+
+        console.log(`👥 Sala ${data.code}: 2 jugadores conectados`);
+        // Notificar a ambos que inicie la partida
+        room.players.forEach((p, i) =>
+          p.send(JSON.stringify({ type: "startGame", code: data.code, role: i === 0 ? "player1" : "player2" }))
+        );
+        return;
+      }
+
+      // 🧩 Movimiento / posición
       if (data.type === "pos") {
-        players.forEach((client) => {
-          if (client !== ws && client.readyState === 1) {
-            client.send(JSON.stringify({ type: "pos", x: data.x, from: id }));
+        const room = rooms.get(data.room);
+        if (!room) return;
+        room.players.forEach((p) => {
+          if (p !== ws && p.readyState === 1) {
+            p.send(JSON.stringify({ type: "pos", room: data.room, x: data.x }));
           }
         });
       }
     } catch (err) {
-      console.error("❌ Error procesando mensaje:", err);
+      console.error("❌ Error en mensaje:", err);
     }
   });
 
   ws.on("close", () => {
-    console.log(`🔴 Jugador desconectado: ${id}`);
-    players.delete(id);
+    if (ws.roomCode) {
+      const room = rooms.get(ws.roomCode);
+      if (room) {
+        room.players = room.players.filter((p) => p !== ws);
+        if (room.players.length === 0) {
+          rooms.delete(ws.roomCode);
+          console.log(`🗑️ Sala ${ws.roomCode} eliminada`);
+        }
+      }
+    }
   });
 });
 
-// Puerto y dirección local
+// ====================
+// 🔌 Servidor HTTP/WS
+// ====================
 const PORT = process.env.PORT || 8080;
-
-// 🧠 Obtener IP local automáticamente
 function getLocalIP() {
   const interfaces = os.networkInterfaces();
   for (const name of Object.keys(interfaces)) {
     for (const iface of interfaces[name]) {
-      if (iface.family === "IPv4" && !iface.internal) {
-        return iface.address;
-      }
+      if (iface.family === "IPv4" && !iface.internal) return iface.address;
     }
   }
   return "localhost";
 }
 
-server.listen(PORT, () => {
-  const localIP = getLocalIP();
-  console.log(`🚀 Servidor HTTP + WebSocket activo:`);
+server.listen(PORT, "0.0.0.0", () => {
+  const ip = getLocalIP();
+  console.log(`🚀 Servidor listo en:`);
   console.log(`👉 Local:  http://localhost:${PORT}`);
-  console.log(`👉 LAN:    http://${localIP}:${PORT}`);
-  console.log(`🌐 WebSocket (auto): ws://${localIP}:${PORT}`);
+  console.log(`👉 LAN:    http://${ip}:${PORT}`);
+  console.log(`🌐 WS:     ws://${ip}:${PORT}`);
 });

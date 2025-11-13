@@ -1,283 +1,175 @@
-// ===========================================
-//  FOOD FRENZY - MODO LOCAL 2 JUGADORES
-// ===========================================
+import { createScene } from "../../core/sceneManager.js";
+import { loadPlayers } from "../../core/playerManager.js";
+import { getConfigMulti } from "../../core/difficulty.js";
+import { setupHUDMulti } from "../../gameplay/hudManagerMulti.js";
+import { crearObjeto } from "../../gameplay/objectSpawner.js";
+import { startGameLoopMulti } from "../../core/gameLoopMulti.js";
+import { setupPauseMenu } from "../../gameplay/pauseMenu.js";
 
-import * as THREE from "three";
-import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
+// === 1️⃣ Inicialización ===
+const { scene, camera, renderer } = createScene();
 
-// ============ ESCENA ============
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x3a4a6b);
+// 🧠 Leer configuración del menú anterior (si existe)
+let config = getConfigMulti(); // base de dificultad
+const savedConfig = localStorage.getItem("configMultijugador");
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 8, 14);
-camera.lookAt(0, 1, 6.5);
+if (savedConfig) {
+  try {
+    const parsed = JSON.parse(savedConfig);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true;
-document.body.appendChild(renderer.domElement);
+    // Combinar con la configuración base
+ config = {
+  ...config,
+  tipoJuego: parsed.tipoJuego || "local",
+  escenario: parsed.escenario || "MP_Stage1",
+  dificultad: parsed.dificultad || config.dificultad,
+  modo: parsed.modo || "clasico",
+  probBomba: parsed.probBomba ?? 0.2, // 💣 Probabilidad base de bomba (20%)
+};
 
-// ============ ILUMINACIÓN ============
-scene.add(new THREE.AmbientLight(0xfff5e1, 0.6));
-const dirLight = new THREE.DirectionalLight(0xffaa66, 1.2);
-dirLight.position.set(8, 15, -5);
-dirLight.castShadow = true;
-scene.add(dirLight);
 
-const hemiLight = new THREE.HemisphereLight(0x7092be, 0x1f2833, 0.8);
-scene.add(hemiLight);
+    console.log("⚙️ Config cargada del menú:", config);
+  } catch (err) {
+    console.error("❌ Error leyendo configMultijugador:", err);
+  }
+}
 
-// ============ CARGAR CIUDAD ============
-const fbxLoader = new FBXLoader();
-fbxLoader.load(
-  "/Assets/city/city.fbx",
-  (fbx) => {
-    fbx.scale.set(0.0045, 0.0045, 0.0045);
-    fbx.position.set(0, -1.2, 0);
-    fbx.rotation.y = Math.PI;
-    fbx.traverse((child) => {
-      if (child.isMesh) child.receiveShadow = true;
+// (opcional) limpiar el localStorage una vez usada
+localStorage.removeItem("configMultijugador");
+
+const hud = setupHUDMulti();
+
+console.log(`🎮 Modo activo: ${config.modo}`);
+
+// === 2️⃣ Variables globales ===
+let objetos = [];
+let puntos1 = 0;
+let puntos2 = 0;
+let vidas1 = config.vidas;
+let vidas2 = config.vidas;
+let tiempo = config.tiempo;
+let loopControl;
+let debugVisible = false;
+
+// === 3️⃣ Debug toggle ===
+window.addEventListener("keydown", (e) => {
+  if (e.key.toLowerCase() === "h") {
+    debugVisible = !debugVisible;
+    scene.traverse((obj) => {
+      if (obj.userData.isDebugHelper) obj.visible = debugVisible;
     });
-    scene.add(fbx);
-    console.log("✅ Ciudad cargada");
-  },
-  undefined,
-  (err) => console.error("❌ Error cargando ciudad:", err)
-);
-
-// ============ VARIABLES ============
-let jugador1 = null, jugador2 = null;
-const objetos = [];
-const comidas = ["ajo", "banana", "bellota", "calabaza", "cebolla", "cereza", "chayote", "chicharos"];
-const textureLoader = new THREE.TextureLoader();
-
-let puntos1 = 0, vidas1 = 3;
-let puntos2 = 0, vidas2 = 3;
-let tiempo = 60;
-let gravedad = 0.06;
-const gravedadMaxima = 0.15;
-let juegoActivo = true;
-
-// ============ CREAR JUGADORES (CANASTAS) ============
-function cargarCanasta(x, callback) {
-  fbxLoader.load(
-    "/Assets/basket2.fbx",
-    (fbx) => {
-      fbx.scale.set(0.015, 0.015, 0.015);
-      fbx.position.set(x, 0.6, 6.5);
-      fbx.rotation.y = Math.PI;
-      fbx.traverse((child) => {
-        if (child.isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-        }
-      });
-      scene.add(fbx);
-      callback(fbx);
-    },
-    undefined,
-    (err) => console.error("❌ Error cargando canasta:", err)
-  );
-}
-
-cargarCanasta(-3, (canasta) => {
-  jugador1 = canasta;
-  console.log("🏀 Jugador 1 cargado");
+    console.log(debugVisible ? "🟩 Debug activado" : "⬛ Debug oculto");
+  }
 });
 
-cargarCanasta(3, (canasta) => {
-  jugador2 = canasta;
-  console.log("🏀 Jugador 2 cargado");
+// === 4️⃣ Cargar jugadores y arrancar ===
+loadPlayers(scene).then(({ player1, player2 }) => {
+  loopControl = startGameLoopMulti(
+    scene,
+    camera,
+    renderer,
+    { player1, player2 },
+    objetos,
+    config,
+    perderVida,
+    ganarPuntos,
+    hud
+  );
+// Aumentar probabilidad de bomba dinámicamente cada 20 segundos
+if (config.dinamico) {
+  setInterval(() => {
+    if (config.probBomba < 0.6) {
+      config.probBomba += 0.05;
+      console.log(`💣 Dificultad aumentada: probBomba = ${config.probBomba.toFixed(2)}`);
+    }
+  }, 20000); // cada 20 segundos
+}
+
+  setupPauseMenu(loopControl);
+
+  // 🧩 Spawner de objetos
+  setInterval(() => {
+    if (loopControl.isRunning()) {
+      crearObjeto(scene, objetos, config, debugVisible);
+    }
+  }, config.spawn);
+
+  // 🕒 Tiempo / Puntos según modo
+  if (config.modo === "survival") {
+    setInterval(() => {
+      if (loopControl.isRunning()) {
+        tiempo++;
+        hud.actualizarTiempo(tiempo);
+      }
+    }, 1000);
+  } else {
+    setInterval(() => {
+      if (!loopControl.isRunning()) return;
+      tiempo--;
+      hud.actualizarTiempo(tiempo);
+      if (tiempo <= 0) terminarJuego();
+    }, 1000);
+  }
 });
 
-// ============ CONTROLES ============
-const teclas = {};
-window.addEventListener("keydown", e => teclas[e.key] = true);
-window.addEventListener("keyup", e => teclas[e.key] = false);
 
-// ============ HUD ============
-function actualizarHUD() {
-  document.getElementById("puntos1").textContent = puntos1.toString().padStart(3, "0");
-  document.getElementById("puntos2").textContent = puntos2.toString().padStart(3, "0");
-  document.getElementById("vidas1").src = "/Images/HUDs/Health" + vidas1 + ".png";
-  document.getElementById("vidas2").src = "/Images/HUDs/Health" + vidas2 + ".png";
-  document.getElementById("tiempo").textContent = tiempo;
+// === 5️⃣ Lógica de puntuación y vidas ===
+function perderVida(jugador) {
+  if (jugador === 1) vidas1--;
+  else vidas2--;
+
+  hud.actualizarVidas(vidas1, vidas2);
+
+  // 🧩 Si el modo es survival, se gana por resistencia
+  if (config.modo === "survival") {
+    if (vidas1 <= 0 && vidas2 > 0) {
+      terminarJuego("Jugador 2");
+      return;
+    }
+    if (vidas2 <= 0 && vidas1 > 0) {
+      terminarJuego("Jugador 1");
+      return;
+    }
+    if (vidas1 <= 0 && vidas2 <= 0) {
+      terminarJuego("Empate");
+      return;
+    }
+  } else {
+    // Clásico: termina cuando alguno llegue a 0
+    if (vidas1 <= 0 || vidas2 <= 0) terminarJuego();
+  }
 }
 
-// ============ CREAR OBJETOS ============
-function crearObjeto() {
-  if (!juegoActivo) return;
-
-  const esBomba = Math.random() < 0.25;
-  const nombre = esBomba ? "bomba" : comidas[Math.floor(Math.random() * comidas.length)];
-  
-  const modeloRuta = esBomba 
-    ? "/Assets/bomb/source/bomb.fbx"
-    : `/Assets/comida/${nombre}.fbx`;
-  
-  const texturaRuta = `/Assets/comida/${nombre}.png`;
-
-  fbxLoader.load(
-    modeloRuta,
-    (objeto) => {
-      // Aplicar textura solo a comida
-      if (!esBomba) {
-        const textura = textureLoader.load(texturaRuta);
-        objeto.traverse((child) => {
-          if (child.isMesh) {
-            child.material = new THREE.MeshStandardMaterial({
-              map: textura,
-              roughness: 0.5,
-              metalness: 0.1,
-            });
-            child.castShadow = true;
-          }
-        });
-      }
-
-      // Escalar y posicionar
-      const escala = esBomba ? 0.012 : 0.015;
-      objeto.scale.setScalar(escala);
-      objeto.position.set((Math.random() - 0.5) * 10, 10, 6.5);
-      objeto.userData.esBomba = esBomba;
-      objeto.userData.velocidadRotacion = Math.random() * 0.05 + 0.02;
-
-      // Calcular tamaño
-      objeto.updateMatrixWorld(true);
-      const box = new THREE.Box3().setFromObject(objeto);
-      const size = new THREE.Vector3();
-      box.getSize(size);
-      objeto.userData.size = size;
-
-      scene.add(objeto);
-      objetos.push(objeto);
-    },
-    undefined,
-    (err) => console.warn("⚠️ Error cargando objeto:", err)
-  );
+function ganarPuntos(jugador) {
+  // Solo cuenta en modo clásico
+  if (config.modo !== "clasico") return;
+  if (jugador === 1) puntos1 += 10;
+  else puntos2 += 10;
+  hud.actualizarPuntos(puntos1, puntos2);
 }
 
-const spawnerInterval = setInterval(() => {
-  if (juegoActivo) crearObjeto();
-}, 1500);
+// === 6️⃣ Final del juego ===
+function terminarJuego(ganadorForzado = null) {
+  loopControl.detener();
 
-// ============ TEMPORIZADOR ============
-const temporizador = setInterval(() => {
-  if (!juegoActivo) return;
-  tiempo--;
-  actualizarHUD();
+  let ganador;
 
-  if (tiempo <= 0) {
-    juegoActivo = false;
-    clearInterval(spawnerInterval);
-    const ganador = puntos1 > puntos2 ? "Jugador 1" : puntos2 > puntos1 ? "Jugador 2" : "Empate";
-    alert(`⏰ Tiempo terminado!\n\n${ganador} gana!\n\nJugador 1: ${puntos1}\nJugador 2: ${puntos2}`);
-    window.location.href = "../../index.html";
-  }
-}, 1000);
-
-// ============ BUCLE DE ANIMACIÓN ============
-function animar() {
-  requestAnimationFrame(animar);
-
-  if (!jugador1 || !jugador2) {
-    renderer.render(scene, camera);
-    return;
+  if (config.modo === "survival") {
+    ganador =
+      ganadorForzado ||
+      (vidas1 > vidas2 ? "Jugador 1" :
+       vidas2 > vidas1 ? "Jugador 2" : "Empate");
+  } else {
+    ganador =
+      puntos1 > puntos2 ? "Jugador 1" :
+      puntos2 > puntos1 ? "Jugador 2" : "Empate";
   }
 
-  // Movimiento Jugador 1 (A/D)
-  if (teclas["a"]) jugador1.position.x -= 0.15;
-  if (teclas["d"]) jugador1.position.x += 0.15;
+  const mensaje =
+    config.modo === "survival"
+      ? `💣 Modo Survival terminado!\n${ganador} resistió más tiempo.`
+      : `🏁 Fin del juego!\n${ganador}\n\nJ1: ${puntos1} pts\nJ2: ${puntos2} pts`;
 
-  // Movimiento Jugador 2 (Flechas)
-  if (teclas["ArrowLeft"]) jugador2.position.x -= 0.15;
-  if (teclas["ArrowRight"]) jugador2.position.x += 0.15;
-
-  // Limitar movimiento
-  jugador1.position.x = Math.max(-8, Math.min(0, jugador1.position.x)); // Lado izquierdo
-  jugador2.position.x = Math.max(0, Math.min(8, jugador2.position.x));  // Lado derecho
-
-  // Cajas de colisión
-  const box1 = new THREE.Box3().setFromCenterAndSize(
-    new THREE.Vector3(jugador1.position.x, jugador1.position.y + 0.6, 6.5),
-    new THREE.Vector3(2.8, 1.5, 0.8)
-  );
-
-  const box2 = new THREE.Box3().setFromCenterAndSize(
-    new THREE.Vector3(jugador2.position.x, jugador2.position.y + 0.6, 6.5),
-    new THREE.Vector3(2.8, 1.5, 0.8)
-  );
-
-  // Procesar objetos
-  for (let i = objetos.length - 1; i >= 0; i--) {
-    const obj = objetos[i];
-    obj.position.y -= gravedad;
-
-
-    const size = obj.userData.size || new THREE.Vector3(1, 1, 1);
-    const objBox = new THREE.Box3().setFromCenterAndSize(
-      obj.position.clone(),
-      size.clone().multiplyScalar(0.9)
-    );
-
-    // Colisión con jugador 1
-    if (box1.intersectsBox(objBox)) {
-      if (obj.userData.esBomba) {
-        vidas1--;
-        if (vidas1 <= 0) {
-          juegoActivo = false;
-          clearInterval(temporizador);
-          clearInterval(spawnerInterval);
-          alert(`💥 Jugador 1 eliminado!\n\nJugador 2 gana con ${puntos2} puntos!`);
-          window.location.href = "../../index.html";
-        }
-      } else {
-        puntos1 += 10;
-      }
-      scene.remove(obj);
-      objetos.splice(i, 1);
-      actualizarHUD();
-      continue;
-    }
-
-    // Colisión con jugador 2
-    if (box2.intersectsBox(objBox)) {
-      if (obj.userData.esBomba) {
-        vidas2--;
-        if (vidas2 <= 0) {
-          juegoActivo = false;
-          clearInterval(temporizador);
-          clearInterval(spawnerInterval);
-          alert(`💥 Jugador 2 eliminado!\n\nJugador 1 gana con ${puntos1} puntos!`);
-          window.location.href = "../../index.html";
-        }
-      } else {
-        puntos2 += 10;
-      }
-      scene.remove(obj);
-      objetos.splice(i, 1);
-      actualizarHUD();
-      continue;
-    }
-
-    // Eliminar si cae fuera
-    if (obj.position.y < -3.5) {
-      scene.remove(obj);
-      objetos.splice(i, 1);
-    }
-  }
-
-  // Incrementar gravedad gradualmente
-  gravedad = Math.min(gravedadMaxima, gravedad + 0.00003);
-
-  renderer.render(scene, camera);
+  alert(mensaje);
+  window.location.href = "../../index.html";
 }
-
-animar();
-
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});

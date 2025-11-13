@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Food Frenzy | Lobby Online</title>
+  <link rel="stylesheet" href="lobby.css" />
+</head>
+<body>
+  <div class="wrapper">
+    <!-- Botón regresar -->
+    <a class="nav-link" href="multijugador.html">
+      <button id="btnRegresar" type="button">
+        <img src="../../Images\Iconos\IMG_6165-2.png" alt="Volver" />
+      </button>
+    </a>
+
+    <!-- Contenedor principal -->
+    <div class="lobby-container">
+      <div class="title">
+        <h1>🍔 FOOD FRENZY ONLINE</h1>
+        <p>Conecta con otro jugador</p>
+      </div>
+
+      <div id="infoBox" class="info-box">Conectando...</div>
+
+      <!-- Botones de menú -->
+      <div class="menu-options">
+        <button id="btnCrear" class="menu-btn">🆕 Crear sala</button>
+        <button id="btnUnirse" class="menu-btn">🔗 Unirse a sala</button>
+      </div>
+
+      <!-- Caja de espera -->
+      <div id="esperaBox" class="status-box hidden">
+        <p class="sala-info">
+          🕹️ Código de sala: <span id="codigoSala" class="codigo">----</span>
+        </p>
+        <p id="rolJugador" class="status-text">Esperando jugador...</p>
+      </div>
+
+      <!-- Caja para iniciar -->
+      <div id="iniciarBox" class="status-box hidden">
+        <p id="rolJugador2" class="status-text"></p>
+        <button id="btnJugar" class="play-btn">🎮 Empezar partida</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="lobby.js"></script>
+</body>
+</html>

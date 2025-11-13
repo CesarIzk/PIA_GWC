@@ -3,8 +3,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const stages = document.querySelectorAll('.selectStage');
   const chosenStage = document.querySelector('.chosenStage');
   const btnEscenario = document.getElementById('btnEscenario');
+  const dificultadRadios = document.querySelectorAll('input[name="dificultad"]');
 
   let selectedStageId = null;
+  let dificultad = 'facil'; // por defecto
+
+  dificultadRadios.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      dificultad = e.target.value;
+      console.log('🎯 Dificultad seleccionada:', dificultad);
+    });
+  });
 
   radioButtons.forEach(button => {
     button.addEventListener('change', () => {
@@ -22,10 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  btnEscenario.addEventListener('click', () => {
-    if (selectedStageId) {
-      localStorage.setItem('selectedStage', selectedStageId);
-      window.location.href = 'soloHUD.html';
-    }
-  });
+btnEscenario.addEventListener('click', () => {
+  if (selectedStageId) {
+    const modo = document.querySelector('input[name="modo"]:checked').value;
+    localStorage.setItem('selectedMode', modo);
+    localStorage.setItem('selectedStage', selectedStageId);
+    window.location.href = 'soloHUD.html';
+  }
+});
+
 });

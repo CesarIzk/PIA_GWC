@@ -1,387 +1,366 @@
 /* Fuente redondeada tipo Arial */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
 :root {
- --rojo: rgb(255, 0, 0);
-   --naranja: #ff9b2b;
-   --naranja-claro: #ffbe73;
+  --rojo: rgb(255, 0, 0);
+  --naranja: #ff9b2b;
+  --naranja-claro: #ffbe73;
   --morado-claro: #d6a7ff;
-  --texto-boton: #ffffff; /* un morado más oscuro para contraste */
+  --texto-boton: #ffffff;
   font-family: "Poppins", sans-serif;
 }
 
-body{
-    margin: 0;
+body {
+  margin: 0;
 }
 
-/* Botón de regresar */
-
-#btnRegresar{
-    background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
-    border: 4px rgb(31, 51, 71) solid ;
-    position: absolute;
-    border-radius: 20%;
-    margin: 20px;
-    height: 90px;
-    width: 90px;
-    cursor: pointer;
-    transition: 150ms all;
+/* ==========================
+   🔙 BOTONES SUPERIORES
+========================== */
+.nav-link {
+  position: fixed;
+  top: 20px;
+  z-index: 1000;
 }
 
-#btnRegresar img{
-    height: 100%;
-    width: 100%;
+.nav-link:first-of-type {
+  left: 20px;
 }
 
-#btnRegresar:hover{
-    height: 110px;
-    width: 110px;
+.nav-link.records {
+  right: 20px;
 }
 
-/* Botón de récords */
-
-.records{
-    display: flex;
-    justify-content: flex-end;
+#btnRegresar,
+#btnRecords {
+  background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+  border: 4px rgb(31, 51, 71) solid;
+  border-radius: 20%;
+  height: 90px;
+  width: 90px;
+  cursor: pointer;
+  transition: 0.2s all;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-#btnRecords{
-     background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
-    position: absolute;
-    border-radius: 20%;
-    margin: 20px;
-    height: 90px;
-    width: 90px;
-    cursor: pointer;
-    transition: 150ms all;
+#btnRegresar img {
+  height: 100%;
+  width: 100%;
 }
 
-#btnRecords img{
-    height: 68%;
-    width: 68%;
+#btnRecords img {
+  height: 68%;
+  width: 68%;
 }
 
-#btnRecords:hover{
-    height: 110px;
-    width: 110px;
+#btnRegresar:hover,
+#btnRecords:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 20px rgba(255, 150, 0, 0.6);
 }
 
-/* Título */
-
-#idTitulo.container{
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    text-align: center;
-    color: rgb(255, 255, 255);
-}
-
-.title{
-     background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
-    color: var(--amarillo-palido);
-    border-radius: 10px;
-    border: 10px solid transparent;
-    width: 50%;
-    min-width: max-content;
-    margin: 20px;
-}
-
-.title h1{
-    margin: 7px;
-    font-family: "Poppins", sans-serif;
-    font-size: 40px;
-}
-
-.title p{
-    font-size: 20px;
-}
-
-/* Escenario */
-
-#idEscenarios.container{
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 2em;
-}
-
-.selectStage{
-    background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
-    border: 5px transparent solid;
-    border-radius: 10px;
-    width: 20%;
-    min-width: 300px;
-    padding: 10px 10px 0 10px;
-    transition: 200ms all;
-}
-
-.selectStage h2{
-    font-family: "Poppins", sans-serif;
-    text-transform: uppercase;
-    font-size: 23px;
-    color: rgb(255, 255, 255);
-}
-
-.selectStage p{
-    font-size: 15px;
-}
-
-.selectStage img{
-    object-fit:cover;
-    width: 100%;
-    border-top-left-radius: 30px;
-    border-top-right-radius: 30px;
-}
-
-.selectStage img + div{
-    padding: 0 10px 10px 10px;
-}
-
-#idNormal::after{
-    content: " NORMAL";
-    color:rgb(210, 208, 71);
-}
-
-.selectStage:hover{
-    width: 25%;
-    box-shadow:-5px 5px var(--rojo), -10px 10px 10px rgb(255, 0, 0);
-    border-bottom: none;
-}
-.selectStage.active {
-    width: 25%;
-    background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
-   box-shadow:-5px 5px var(--rojo), -10px 10px 10px rgb(255, 0, 0);
-    color: var(--amarillo-palido);
-    border: none;
-    border-bottom: 5px transparent solid;
-    
-}
-
-.form-check-input{
-    width: 50px;
-    height: 50px;
-    position: absolute;
-}
-
-input[type='radio']{
-    accent-color: var(--azul-pastel);
-    outline: none;
-}
-
-.form-check-input:checked ~ .selectStage {
-    width: 25%;
-}
-
-/* Columna derecha */
-
-.dataSection{
-    width: 22%;
-    
-}
-
-/* Nombre de usuario */
-
-/* Popup */
-
-.popup {
-    position:absolute;
-    margin-left: 325px; 
-    
-}
-
-.popup img{
-    margin-top: 5px;
-    height: 30px;
-}
-
-/* El mensaje */
-.popup .popuptext {
-    visibility: hidden;
-    width: 160px;
-    background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
-    color: var(--amarillo-palido);
-    text-align: center;
-    border-radius: 6px;
-    padding: 8px 7px;
-    position: absolute;
-    z-index: 1;
-    bottom: 125%;
-    left: 120%;
-    margin-left: -80px;
-}
-
-/* Colita del Popup */
-.popup .popuptext::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -34px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: var(--naranja) transparent transparent transparent;
-}
-
-.popup .show {
-    visibility: visible;
-    -webkit-animation: fadeIn 0.5s;
-    animation: fadeIn 0.5s
-    
-}
-
-@-webkit-keyframes fadeIn {
-  from {opacity: 0;}
-  to {opacity: 1;}
-}
-
-@keyframes fadeIn {
-  from {opacity: 0;}
-  to {opacity:1 ;}
-}
-
-.dataSection[aria-disabled="false"] .nameSection {
-    opacity: 1;
-    
-}
-
-.nameSection{
-    opacity: 0.5;
-    width: 100%;
-    min-width: max-content;
-    background-color: var(--naranja);
-    background: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
-    text-align: center;
-    border-radius: 10px;
-    border: 5px transparent solid;
-    padding: 0 30px 20px 30px;
-    margin-bottom: 10px;
-    color: rgb(255, 255, 255);
-}
-
-.nameSection h2{
-    margin-bottom: 5px;
-}
-
-#txtUsername{
-    width: 70%;
-    border-radius: 10px;
-    border: none;
-    font-size: 18px;
-    text-align: center;
-    font-family: "Poppins", sans-serif;
-    color: var(--texto-boton);
-}
-
-#txtUsername:focus{
-    background-color: var(--amarillo-palido);
-    outline: none;
-}
-
-/* Boton para iniciar la partida */
-
-.dataSection[aria-disabled="false"] .chosenStage {
-    opacity: 1;
-}
-
-.chosenStage{
-    opacity: 0.5;
-    width: 100%;
-    min-width: max-content;
-    background-color: var(--naranja);
-    background: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
-    text-align: center;
-    border-radius: 10px;
-    border: 5px transparent solid;
-    padding: 0 30px 20px 30px;
-    
-    
-}
-
-.chosenStage h2{
-    font-size: 30px;
-    color: rgb(255, 255, 255)
-}
-
-.chosenStage img{
-    width: 150px;
-    margin-top: -40px;
-    margin-bottom: 10px;
-}
-
-.dataSection[aria-disabled="false"] #btnEscenario{
-    cursor: pointer;
-}
-
-#btnEscenario{
-    display: block;
-    margin: -10px auto 15px auto;
-    padding: 12px;
-    border-radius: 10px;
-    font-size: 30px;
-    background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
-    color: var(--amarillo-palido);
-    border: 2px solid transparent;
-    box-shadow:-5px 5px var(--rojo), -10px 10px 10px rgb(255, 0, 0);
-    width: max-content;
-    line-height: 140%;
-    font-family: "Poppins", sans-serif;
-    cursor:default;
-    transition: 200ms all;
-    
-}
-
-.dataSection[aria-disabled="false"] #btnEscenario:hover{
-     background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
-    box-shadow:-5px 5px var(--rojo), -10px 10px 10px rgb(255, 0, 0);
-    width: max-content;
-    color: var(--amarillo-palido);
-    font-size: 35px;
-    transition: 150ms all;
-}
-
-.dataSection[aria-disabled="false"] #btnEscenario:active{
-    background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
-    box-shadow:-5px 5px var(--rojo), -10px 10px 10px rgb(255, 0, 0);
-    font-size: 32px;
-}
-
-/* Fondo en movimiento*/
-
+/* ==========================
+   🎯 ESTRUCTURA GENERAL
+========================== */
 .wrapper {
- position: absolute;
-    top: 0; left: 0;
-    background-image: url('../Images/Backgrounds/TAREA.jpg');
-    background-size: cover;
-    background-position: center;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-image: url('../Images/Backgrounds/TAREA.jpg');
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+  width: 100%;
+  overflow-y: auto;
+  padding-bottom: 3rem;
 }
 
+/* ==========================
+   🧺 TÍTULO
+========================== */
+#idTitulo.container {
+  margin-top: 40px;
+  text-align: center;
+  color: white;
+}
+
+.title {
+  background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+  border-radius: 12px;
+  padding: 20px 40px;
+  box-shadow: 0 0 20px rgba(255, 150, 0, 0.4);
+}
+
+.title h1 {
+  margin: 0;
+  font-size: 44px;
+  text-shadow: 2px 2px rgba(31,51,71,0.4);
+  font-family: "Poppins", sans-serif;
+}
+
+.title p {
+  margin: 10px 0 0;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+/* ==========================
+   🎮 MODOS DE JUEGO
+========================== */
 #modosDeJuego {
   text-align: center;
-  margin-top: 40px;
+  margin-top: 30px;
   color: white;
+}
+
+#modosDeJuego h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px rgba(0, 0, 0, 0.3);
 }
 
 .modos {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 2rem;
   flex-wrap: wrap;
 }
 
 .modo-btn {
   background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
-  border: 3px solid var(--amarillo-palido);
+  border: 4px solid rgba(31, 51, 71, 0.9);
   color: white;
-  padding: 15px 25px;
-  font-size: 20px;
-  border-radius: 15px;
+  padding: 15px 30px;
+  font-size: 22px;
+  font-weight: 600;
+  border-radius: 12px;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: 0.3s ease;
+  box-shadow: -6px 6px 12px rgba(255, 0, 0, 0.4);
+  font-family: "Poppins", sans-serif;
 }
 
 .modo-btn:hover {
   transform: scale(1.1);
-  background-image: linear-gradient(135deg, var(--turqueza) 0%, var(--azul-pastel) 100%);
+  box-shadow: 0 0 25px rgba(255, 100, 0, 0.7);
+}
+
+.modo-btn.active {
+  border: 4px solid #00ff99;
+  box-shadow: 0 0 20px #00ff99;
+  transform: scale(1.05);
+}
+
+/* ==========================
+   🏙️ TARJETAS DE ESCENARIOS
+========================== */
+#idEscenarios.container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.selectStage {
+  background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+  border-radius: 12px;
+  border: 4px solid transparent;
+  width: clamp(260px, 28%, 360px);
+  padding: 10px;
+  transition: 0.25s all;
+  cursor: pointer;
+}
+
+.selectStage:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 100, 0, 0.7);
+}
+
+.selectStage.active {
+  border: 3px solid #00ff99;
+  box-shadow: 0 0 15px #00ff99;
+  transform: scale(1.05);
+}
+
+.selectStage img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.selectStage h2 {
+  font-family: "Poppins", sans-serif;
+  text-transform: uppercase;
+  font-size: 22px;
+  color: white;
+  margin-top: 10px;
+}
+
+.selectStage h3 {
+  color: #fff;
+  margin: 5px 0;
+}
+
+/* ==========================
+   🎮 DIFICULTAD Y MODO
+========================== */
+.difficulty-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 2rem;
+}
+
+#dificultadContainer,
+#modoContainer {
+  background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+  border-radius: 12px;
+  border: 4px solid rgba(31, 51, 71, 0.9);
+  padding: 15px 30px;
+  color: white;
+  text-align: center;
+  box-shadow: -6px 6px 12px rgba(255, 0, 0, 0.4);
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  width: clamp(280px, 40%, 420px);
+  margin-top: 1.5rem;
+}
+
+#dificultadContainer h3,
+#modoContainer h3 {
+  margin-top: 0;
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.dificultad-opciones,
+#modoContainer label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.dificultad-opciones label {
+  background-color: rgba(255, 255, 255, 0.15);
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.dificultad-opciones input[type="radio"] {
+  margin-right: 6px;
+}
+
+.dificultad-opciones label:hover,
+#modoContainer label:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+#modoContainer label {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+/* ==========================
+   🚀 BLOQUE FINAL (Iniciar)
+========================== */
+.chosenStage {
+  margin-top: 2rem;
+  background-image: linear-gradient(135deg, var(--naranja) 0%, var(--naranja-claro) 100%);
+  opacity: 0.8;
+  width: clamp(300px, 30%, 400px);
+  border-radius: 10px;
+  text-align: center;
+  padding: 20px;
+  transition: 0.2s all;
+  box-shadow: 0 0 25px rgba(255, 140, 0, 0.5);
+}
+
+.chosenStage[aria-disabled="false"] {
+  opacity: 1;
+}
+
+.chosenStage h2 {
+  color: white;
+  font-size: 30px;
+  margin-bottom: 15px;
+}
+
+#btnIniciar,
+#btnEscenario {
+  display: block;
+  margin: 15px auto;
+  padding: 12px 30px;
+  font-size: 24px;
+  background: linear-gradient(135deg, #00ff99 0%, #00cc66 100%);
+  border: none;
+  border-radius: 10px;
+  color: #1f2833;
+  font-weight: 700;
+  font-family: "Poppins", sans-serif;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.chosenStage[aria-disabled="false"] #btnIniciar:hover,
+.chosenStage[aria-disabled="false"] #btnEscenario:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+}
+
+.chosenStage[aria-disabled="false"] #btnIniciar:active,
+.chosenStage[aria-disabled="false"] #btnEscenario:active {
+  transform: scale(0.97);
+}
+
+#btnIniciar:disabled,
+#btnEscenario:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #666 0%, #999 100%);
+}
+
+/* ==========================
+   📱 RESPONSIVE
+========================== */
+@media (max-width: 768px) {
+  .title {
+    width: 90%;
+  }
+
+  #idEscenarios.container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .chosenStage {
+    width: 90%;
+  }
+  
+  #dificultadContainer,
+  #modoContainer {
+    width: 90%;
+  }
+
+  .modos {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .modo-btn {
+    width: 80%;
+    max-width: 300px;
+  }
 }

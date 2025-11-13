@@ -1,272 +1,174 @@
-// =========================
-// WEBSOCKET (AUTO-CONNECT)
-// =========================
-const socket = new WebSocket(`${window.location.origin.replace("http", "ws")}`);
+// ===============================================
+// 🎮 FOOD FRENZY - CLIENTE ONLINE (Modo WebSocket)
+// ===============================================
 
-// ===========================================
-//  FOOD FRENZY - MODO ONLINE (2 JUGADORES)
-// ===========================================
+import { createScene } from "../../core/sceneManager.js";
+import { loadPlayers } from "../../core/playerManager.js";
+import { getConfigMulti } from "../../core/difficulty.js";
+import { setupHUDMulti } from "../../gameplay/hudManagerMulti.js";
+import { crearObjeto } from "../../gameplay/objectSpawner.js";
+import { startGameLoopMulti } from "../../core/gameLoopMulti.js";
 
-import * as THREE from "three";
-import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
+// ==============================
+// 🌐 Conexión WebSocket
+// ==============================
+const WS_URL =
+  window.location.hostname === "localhost" ||
+  window.location.hostname.startsWith("192.")
+    ? "ws://192.168.100.237:8080" // 💻 IP local
+    : `wss://${window.location.hostname}`; // 🌐 Railway
 
-let jugadorID = null;
-let otroJugadorID = null;
+const socket = new WebSocket(WS_URL);
+console.log(`🌐 Conectando a ${WS_URL} ...`);
 
-// =========================
-// ESCENA BÁSICA
-// =========================
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x3a4a6b);
+// ==============================
+// 🔁 Datos de sesión
+// ==============================
+const sessionData = JSON.parse(localStorage.getItem("multiplayerSession") || "{}");
+const roomCode = sessionData.roomCode || "???";
+const role = sessionData.role || "player1";
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 8, 14);
-camera.lookAt(0, 1, 6.5);
+console.log(`🎮 Sala: ${roomCode} | Rol: ${role}`);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true;
-document.body.appendChild(renderer.domElement);
+// ==============================
+// ⚙️ Configuración base
+// ==============================
+let config = getConfigMulti();
+config.tipoJuego = "online";
+config.modo = "clasico"; // o survival, según lobby
+config.gravedad = 0.06;
+config.spawn = 2000;
+config.vidas = 3;
+config.tiempo = 60;
 
-// =========================
-// ILUMINACIÓN
-// =========================
-scene.add(new THREE.AmbientLight(0xfff5e1, 0.6));
-const dirLight = new THREE.DirectionalLight(0xffaa66, 1.2);
-dirLight.position.set(8, 15, -5);
-dirLight.castShadow = true;
-scene.add(dirLight);
-scene.add(new THREE.HemisphereLight(0x7092be, 0x1f2833, 0.8));
+let objetos = [];
+let puntosLocal = 0;
+let puntosRemoto = 0;
+let vidasLocal = config.vidas;
+let vidasRemoto = config.vidas;
+let tiempo = config.tiempo;
 
-// =========================
-// CARGAR ESCENARIO
-// =========================
-const fbxLoader = new FBXLoader();
-fbxLoader.load(
-  "/Assets/city/city.fbx",
-  (fbx) => {
-    fbx.scale.setScalar(0.0045);
-    fbx.position.set(0, -1.2, 0);
-    fbx.rotation.y = Math.PI;
-    fbx.traverse((child) => (child.isMesh ? (child.receiveShadow = true) : null));
-    scene.add(fbx);
-    console.log("✅ Ciudad cargada");
-  },
-  undefined,
-  (err) => console.error("❌ Error cargando ciudad:", err)
-);
+let loopControl;
+let hud;
+let juegoIniciado = false;
 
-// =========================
-// VARIABLES
-// =========================
-let jugadorLocal = null;
-let jugadorRemoto = null;
-const objetos = [];
-let puntos = 0;
-let vidas = 3;
-let tiempo = 60;
-let gravedad = 0.06;
-const gravedadMax = 0.15;
-let juegoActivo = true;
-
-// =========================
-// CREAR CANASTAS
-// =========================
-function crearCanasta(x, color, callback) {
-  fbxLoader.load(
-    "/Assets/basket2.fbx",
-    (fbx) => {
-      fbx.scale.setScalar(0.015);
-      fbx.position.set(x, 0.6, 6.5);
-      fbx.rotation.y = Math.PI;
-      fbx.traverse((child) => {
-        if (child.isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-
-          // 🟢 Evita error si el material no tiene propiedad color
-          if (child.material && child.material.color) {
-            child.material.color = new THREE.Color(color);
-          }
-        }
-      });
-      scene.add(fbx);
-      callback(fbx);
-    },
-    undefined,
-    (err) => console.error("❌ Error cargando canasta:", err)
-  );
-}
-
-crearCanasta(-3, 0x00ff88, (fbx) => (jugadorLocal = fbx));
-crearCanasta(3, 0xff0066, (fbx) => (jugadorRemoto = fbx));
-
-// =========================
-// CONTROLES
-// =========================
-const teclas = {};
-window.addEventListener("keydown", (e) => (teclas[e.key] = true));
-window.addEventListener("keyup", (e) => (teclas[e.key] = false));
-
-
-// =========================
-// HUD
-// =========================
-function actualizarHUD() {
-  // ✅ Ruta simplificada (las imágenes están en /Images/HUDs/)
-  const healthPath = "/Images/HUDs";
-
-  document.getElementById("puntos1").textContent = puntos.toString().padStart(3, "0");
-  document.getElementById("vidas1").src = `${healthPath}/Health${vidas}.png`;
-  document.getElementById("tiempo").textContent = tiempo;
-}
-
-
-// =========================
-// WEBSOCKET HANDLERS
-// =========================
+// ==============================
+// 🎮 Eventos del socket
+// ==============================
 socket.addEventListener("open", () => {
-  console.log("🌐 Conectado al servidor");
+  console.log("✅ Conectado al servidor WebSocket");
+  socket.send(JSON.stringify({ type: "join", code: roomCode }));
 });
 
 socket.addEventListener("message", (event) => {
   const data = JSON.parse(event.data);
 
-  // Si es un mensaje de posición de otro jugador
-  if (data.type === "pos" && jugadorRemoto) {
-    jugadorRemoto.position.x = data.x;
+  // 🔹 Cuando el servidor indique que ambos jugadores están listos
+  if (data.type === "startGame" && !juegoIniciado) {
+    juegoIniciado = true;
+    console.log("🎬 ¡Ambos jugadores conectados! Iniciando partida...");
+    iniciarJuego();
   }
 
-  // Si el servidor te asigna un ID
-  if (data.type === "assign") {
-    jugadorID = data.id;
-    console.log("🪪 ID asignado:", jugadorID);
+  // 🔹 Actualizar posición del jugador remoto (ya lo maneja el loop)
+  if (data.type === "error") {
+    console.warn("⚠️ Servidor:", data.message);
   }
 });
 
-socket.addEventListener("close", () => console.log("❌ Conexión cerrada"));
-
-// =========================
-// FUNCIONES MULTIJUGADOR
-// =========================
-function enviarPosicion() {
-  if (socket.readyState === WebSocket.OPEN && jugadorLocal) {
-    const data = { type: "pos", x: jugadorLocal.position.x };
-    socket.send(JSON.stringify(data));
-  }
-}
-
-// =========================
-// SPAWNER DE OBJETOS
-// =========================
-const textureLoader = new THREE.TextureLoader();
-// 🔤 Usa nombres reales en inglés (según tus archivos)
-const comidas = ["ajo", "banana", "bellota", "calabaza", "cebolla", "cereza", "chayote", "chicharos"];
-
-function crearObjeto() {
-  if (!juegoActivo) return;
-  const esBomba = Math.random() < 0.25;
-  const nombre = esBomba ? "bomba" : comidas[Math.floor(Math.random() * comidas.length)];
-  const modeloRuta = esBomba ? "/Assets/bomb/source/bomb.fbx" : `/Assets/comida/${nombre}.fbx`;
-  const texturaRuta = `/Assets/comida/${nombre}.png`;
-
-  fbxLoader.load(modeloRuta, (obj) => {
-    if (!esBomba) {
-      const textura = textureLoader.load(texturaRuta);
-      obj.traverse((child) => {
-        if (child.isMesh) {
-          child.material = new THREE.MeshStandardMaterial({
-            map: textura,
-            roughness: 0.5,
-            metalness: 0.1,
-          });
-        }
-      });
-    }
-
-    obj.scale.setScalar(esBomba ? 0.012 : 0.015);
-    obj.position.set((Math.random() - 0.5) * 10, 10, 6.5);
-    obj.userData.esBomba = esBomba;
-    obj.userData.size = new THREE.Vector3(1, 1, 1);
-    scene.add(obj);
-    objetos.push(obj);
-  });
-}
-
-setInterval(() => {
-  if (juegoActivo) crearObjeto();
-}, 1500);
-
-// =========================
-// TEMPORIZADOR
-// =========================
-setInterval(() => {
-  if (!juegoActivo) return;
-  tiempo--;
-  actualizarHUD();
-  if (tiempo <= 0) {
-    juegoActivo = false;
-    alert(`⏰ Fin del juego!\nPuntaje: ${puntos}`);
-    window.location.href = "../../index.html";
-  }
-}, 1000);
-
-// =========================
-// BUCLE PRINCIPAL
-// =========================
-function animar() {
-  requestAnimationFrame(animar);
-
-  if (!jugadorLocal || !jugadorRemoto) {
-    renderer.render(scene, camera);
-    return;
-  }
-
-  // Movimiento local
-  if (teclas["a"]) jugadorLocal.position.x -= 0.15;
-  if (teclas["d"]) jugadorLocal.position.x += 0.15;
-  jugadorLocal.position.x = Math.max(-8, Math.min(8, jugadorLocal.position.x));
-
-  // Enviar posición al servidor
-  enviarPosicion();
-
-  // Movimiento y colisiones de objetos
-  for (let i = objetos.length - 1; i >= 0; i--) {
-    const obj = objetos[i];
-    obj.position.y -= gravedad;
-
-    const box = new THREE.Box3().setFromCenterAndSize(
-      new THREE.Vector3(jugadorLocal.position.x, jugadorLocal.position.y + 0.6, 6.5),
-      new THREE.Vector3(2.8, 1.5, 0.8)
-    );
-
-    const objBox = new THREE.Box3().setFromCenterAndSize(obj.position, new THREE.Vector3(1, 1, 1));
-
-    if (box.intersectsBox(objBox)) {
-      if (obj.userData.esBomba) {
-        vidas--;
-        if (vidas <= 0) {
-          juegoActivo = false;
-          alert(`💥 Game Over! Puntaje: ${puntos}`);
-          window.location.href = "../../index.html";
-        }
-      } else {
-        puntos += 10;
-      }
-      scene.remove(obj);
-      objetos.splice(i, 1);
-      actualizarHUD();
-    }
-  }
-
-  gravedad = Math.min(gravedadMax, gravedad + 0.00003);
-  renderer.render(scene, camera);
-}
-
-animar();
-
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+socket.addEventListener("close", () => {
+  alert("❌ Conexión perdida con el servidor.");
+  window.location.href = "../../index.html";
 });
+
+// ==============================
+// 🎮 Inicialización del juego
+// ==============================
+async function iniciarJuego() {
+  const { scene, camera, renderer } = createScene();
+  hud = setupHUDMulti();
+
+  const { player1, player2 } = await loadPlayers(scene);
+
+  // Identificar canasta local y remota según el rol
+  const players = {
+    player1,
+    player2,
+  };
+
+  // === 🔁 Iniciar loop con sincronización de red ===
+  loopControl = startGameLoopMulti(
+    scene,
+    camera,
+    renderer,
+    players,
+    objetos,
+    config,
+    perderVida,
+    ganarPuntos,
+    hud,
+    {
+      socket,
+      role,
+      room: roomCode,
+    }
+  );
+
+  // === 🧩 Spawner de objetos ===
+  setInterval(() => {
+    if (loopControl.isRunning()) {
+      crearObjeto(scene, objetos, config, false);
+    }
+  }, config.spawn);
+
+  if (config.modo === "clasico") {
+  setInterval(() => {
+    if (config.probBomba < 0.6) {
+      config.probBomba += 0.05;
+      console.log(`💣 Dificultad aumentada (online): probBomba = ${config.probBomba.toFixed(2)}`);
+    }
+  }, 20000);
+}
+
+  // === ⏱️ Contador de tiempo ===
+  setInterval(() => {
+    if (!loopControl.isRunning()) return;
+    tiempo--;
+    hud.actualizarTiempo(tiempo);
+    if (tiempo <= 0) terminarJuego();
+  }, 1000);
+}
+
+// ==============================
+// ❤️ Lógica de puntuación y vidas
+// ==============================
+function perderVida(jugador) {
+  if (jugador === 1) vidasLocal--;
+  else vidasRemoto--;
+  hud.actualizarVidas(vidasLocal, vidasRemoto);
+
+  if (vidasLocal <= 0 || vidasRemoto <= 0) terminarJuego();
+}
+
+function ganarPuntos(jugador) {
+  if (config.modo !== "clasico") return;
+  if (jugador === 1) puntosLocal += 10;
+  else puntosRemoto += 10;
+  hud.actualizarPuntos(puntosLocal, puntosRemoto);
+}
+
+// ==============================
+// 🏁 Fin del juego
+// ==============================
+function terminarJuego() {
+  loopControl.detener();
+  const ganador =
+    puntosLocal > puntosRemoto
+      ? "Jugador Local"
+      : puntosRemoto > puntosLocal
+      ? "Jugador Remoto"
+      : "Empate";
+
+  alert(`🏁 ¡Fin del juego!\n${ganador}\n\nTú: ${puntosLocal} pts\nOponente: ${puntosRemoto} pts`);
+  window.location.href = "../../index.html";
+}

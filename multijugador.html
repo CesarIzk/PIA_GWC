@@ -1,43 +1,90 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FOOD FRENZY | MULTIJUGADOR</title>
-   
-    <link rel="stylesheet" href="multijugador.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FOOD FRENZY | MULTIJUGADOR</title>
+  <link rel="stylesheet" href="multijugador.css" />
 </head>
 <body>
-    <div class="wrapper">
-        <a class="nav-link" href="index.html">
-            <button id="btnRegresar" type="button">
-                <img src="Images/Iconos/IMG_6165-2.png" alt="">
-            </button>
-        </a>
+  <div class="wrapper">
+    <!-- Botones superiores -->
+    <a class="nav-link" href="index.html">
+      <button id="btnRegresar" type="button">
+        <img src="Images/Iconos/IMG_6165-2.png" alt="Volver" />
+      </button>
+    </a>
 
-        <a class="nav-link records" href="puntuaciones.html">
-            <button id="btnRecords" type="button">
-                <img src="Images/Iconos/TROFEO.png" alt="">
-            </button>
-        </a>
+    <a class="nav-link records" href="puntuaciones.html">
+      <button id="btnRecords" type="button">
+        <img src="Images/Iconos/TROFEO.png" alt="Records" />
+      </button>
+    </a>
 
-        <div id="idTitulo" class="container">
-            <div class="title">
-                <h1>MULTIJUGADOR</h1>
-                <p>SELECCIONA EL MODO DE JUEGO</p>
-            </div>
-        </div>
-        
-       <div id="modosDeJuego">
-  <h2>Selecciona el tipo de multijugador</h2>
-  <div class="modos">
-    <button id="btnLocal" class="modo-btn">🕹️ Local (2 jugadores)</button>
-    <button id="btnOnline" class="modo-btn">☁️ Online (internet)</button>
-  </div>
-</div>
-
+    <!-- Título -->
+    <div id="idTitulo" class="container">
+      <div class="title">
+        <h1>MULTIJUGADOR</h1>
+        <p>SELECCIONA EL MODO Y ESCENARIO</p>
+      </div>
     </div>
- <script src="multijugador.js"></script>>
 
+    <!-- Tipos de Multijugador -->
+    <section id="modosDeJuego">
+      <h2>Selecciona el tipo de multijugador</h2>
+      <div class="modos">
+        <button id="btnLocal" class="modo-btn">🕹️ Local (2 jugadores)</button>
+        <button id="btnOnline" class="modo-btn">☁️ Online (Internet)</button>
+      </div>
+    </section>
+
+    <!-- Escenarios -->
+    <section id="idEscenarios" class="container">
+      <div class="selectStage" data-id="MP_Stage1">
+        <img src="Images/Escenarios/GRANJA.jpg" alt="Granja" />
+        <h2>Granja</h2>
+        <h3>Dificultad: Fácil</h3>
+      </div>
+
+      <div class="selectStage" data-id="MP_Stage2">
+        <img src="Images/Escenarios/Supermercado.jpg" alt="Supermercado" />
+        <h2>Supermercado</h2>
+        <h3>Dificultad: Difícil</h3>
+      </div>
+
+      <div class="selectStage" data-id="MP_Stage3">
+        <img src="Images/Escenarios/CIUDAD.png" alt="Ciudad" />
+        <h2>Ciudad</h2>
+        <h3>Dificultad: Media</h3>
+      </div>
+    </section>
+
+    <!-- Dificultad -->
+    <div class="difficulty-wrapper">
+      <div id="dificultadContainer">
+        <h3>Dificultad:</h3>
+        <div class="dificultad-opciones">
+          <label><input type="radio" name="dificultad" value="facil" checked> 🥦 Fácil</label>
+          <label><input type="radio" name="dificultad" value="media"> 🌮 Media</label>
+          <label><input type="radio" name="dificultad" value="dificil"> 🌶️ Difícil</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modo de juego -->
+    <div id="modoContainer">
+      <h3>Modo de juego:</h3>
+      <label><input type="radio" name="modo" value="clasico" checked> 🎯 Clásico</label>
+      <label><input type="radio" name="modo" value="survival"> 💣 Esquiva las Bombas</label>
+    </div>
+
+    <!-- Iniciar -->
+    <div class="chosenStage" aria-disabled="true">
+      <h2>Partida Multijugador</h2>
+      <button id="btnIniciar" disabled>Iniciar partida</button>
+    </div>
+  </div>
+
+  <script src="multijugador.js"></script>
 </body>
 </html>

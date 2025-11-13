@@ -2,13 +2,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const tabla = document.querySelector("table");
   const puntuaciones = JSON.parse(localStorage.getItem("puntuaciones")) || [];
 
-  // Elimina filas previas (excepto encabezado)
+  // 🧹 Elimina filas estáticas (excepto encabezado)
   const filas = tabla.querySelectorAll("tr");
   filas.forEach((fila, i) => {
     if (i > 0) fila.remove();
   });
 
-  // Rellena hasta 10 posiciones
+  // 🏆 Rellenar con las puntuaciones guardadas
   for (let i = 0; i < 10; i++) {
     const fila = document.createElement("tr");
     const pos = document.createElement("td");
@@ -34,4 +34,16 @@ document.addEventListener("DOMContentLoaded", () => {
     fila.appendChild(puntos);
     tabla.appendChild(fila);
   }
+
+  // 🗑️ Botón para reiniciar puntuaciones
+  const btnReset = document.createElement("button");
+  btnReset.textContent = "Borrar Puntuaciones";
+  btnReset.id = "btnReset";
+  btnReset.addEventListener("click", () => {
+    if (confirm("¿Seguro que deseas borrar todas las puntuaciones?")) {
+      localStorage.removeItem("puntuaciones");
+      location.reload();
+    }
+  });
+  document.getElementById("idRecordTable").appendChild(btnReset);
 });

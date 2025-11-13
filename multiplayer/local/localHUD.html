@@ -1,31 +1,32 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Food Frenzy - 2 Jugadores</title>
- <link rel="stylesheet" href="localHUD.css">
+  <link rel="stylesheet" href="localHUD.css" />
 </head>
 <body>
   <div id="hud">
-    <!-- Jugador 1 -->
+    <!-- 🧍‍♂️ Jugador 1 -->
     <div class="hudBox">
       <div class="playerName">JUGADOR 1</div>
-      <img id="vidas1" src="Images/HUDs/Health3.png" alt="Vidas J1">
+      <!-- 🔹 Usa una imagen base genérica, las demás se cargarán dinámicamente -->
+      <img id="vidas1" src="../../Images/HUDs/Health3.png" alt="Vidas J1" />
       <div class="puntos" id="puntos1">000</div>
       <div class="controlsHint">A / D</div>
     </div>
 
-    <!-- Tiempo -->
+    <!-- ⏱️ Tiempo -->
     <div class="hudBox" id="tiempoBox">
       <div class="label">TIEMPO</div>
       <div class="tiempo" id="tiempo">60</div>
     </div>
 
-    <!-- Jugador 2 -->
+    <!-- 🧍‍♀️ Jugador 2 -->
     <div class="hudBox">
       <div class="playerName">JUGADOR 2</div>
-      <img id="vidas2" src="Images/HUDs/Health3.png" alt="Vidas J2">
+      <img id="vidas2" src="../../Images/HUDs/Health3.png" alt="Vidas J2" />
       <div class="puntos" id="puntos2">000</div>
       <div class="controlsHint">← / →</div>
     </div>
@@ -42,7 +43,7 @@
   }
   </script>
 
-  <!-- Cargar el juego -->
+  <!-- 🕹️ Cargar el modo local -->
   <script type="module" src="localHUD.js"></script>
 </body>
 </html>
