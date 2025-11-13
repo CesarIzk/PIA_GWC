@@ -2,6 +2,19 @@
 // 🎮 Game Loop Multijugador (Local / Online compatible)
 // ==============================================
 import * as THREE from "three";
+const esMovil = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+// === 📱 Control táctil
+if (esMovil) {
+  window.addEventListener("touchstart", (e) => {
+    window.touchX = e.touches[0].clientX;
+  });
+  window.addEventListener("touchmove", (e) => {
+    window.touchX = e.touches[0].clientX;
+  });
+  window.addEventListener("touchend", () => {
+    window.touchX = null;
+  });
+}
 
 export function startGameLoopMulti(
   scene,
@@ -28,15 +41,34 @@ export function startGameLoopMulti(
   function update() {
     if (!activo) return;
 
-    // === Movimiento local
-    if (!red || red.role === "player1") {
-      if (teclas["a"]) players.player1.position.x -= 0.15;
-      if (teclas["d"]) players.player1.position.x += 0.15;
-    }
-    if (!red || red.role === "player2") {
-      if (teclas["ArrowLeft"]) players.player2.position.x -= 0.15;
-      if (teclas["ArrowRight"]) players.player2.position.x += 0.15;
-    }
+if (esMovil) {
+  // --- 📱 Control táctil (arrastre horizontal)
+  if (!window.touchX) return;
+  const mitadPantalla = window.innerWidth / 2;
+
+  if (!red || red.role === "player1") {
+    // toca mitad izquierda para mover jugador 1
+    if (window.touchX < mitadPantalla / 2) players.player1.position.x -= 0.2;
+    else if (window.touchX < mitadPantalla) players.player1.position.x += 0.2;
+  }
+  if (!red || red.role === "player2") {
+    // toca mitad derecha para mover jugador 2
+    if (window.touchX > mitadPantalla && window.touchX < mitadPantalla * 1.5)
+      players.player2.position.x -= 0.2;
+    else if (window.touchX > mitadPantalla * 1.5)
+      players.player2.position.x += 0.2;
+  }
+} else {
+  // --- 💻 Controles de teclado
+  if (!red || red.role === "player1") {
+    if (teclas["a"]) players.player1.position.x -= 0.15;
+    if (teclas["d"]) players.player1.position.x += 0.15;
+  }
+  if (!red || red.role === "player2") {
+    if (teclas["ArrowLeft"]) players.player2.position.x -= 0.15;
+    if (teclas["ArrowRight"]) players.player2.position.x += 0.15;
+  }
+}
 
     // Limitar movimiento lateral
     players.player1.position.x = Math.max(-8, Math.min(0, players.player1.position.x));

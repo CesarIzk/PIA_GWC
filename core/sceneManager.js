@@ -19,6 +19,8 @@ export function createScene() {
 
 
   // 🎨 Renderizador
+  renderer.shadowMap.enabled = !esMovil; // sin sombras en móvil
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // limita resolución
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;

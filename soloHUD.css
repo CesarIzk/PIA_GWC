@@ -206,3 +206,54 @@ canvas {
   color: white;
   transform: scale(1.05);
 }
+
+/* Controles táctiles */
+#touchControls {
+  position: fixed;
+  bottom: 30px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 40px;
+  z-index: 30;
+  pointer-events: auto;
+}
+
+#touchControls button {
+  width: 90px;
+  height: 90px;
+  font-size: 2rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at top, #ff9b2b, #ff7f00);
+  border: 3px solid #1f3347;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+  transition: transform 0.1s ease;
+}
+
+#touchControls button:active {
+  transform: scale(0.9);
+}
+
+@media (min-width: 769px) {
+  /* Ocultar en PC */
+  #touchControls {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  #vidasContainer img {
+    height: 100px;
+  }
+  .valor {
+    font-size: 22px;
+  }
+  #btnPause {
+    width: 60px;
+    height: 60px;
+    right: 15px;
+    top: 15px;
+  }
+}

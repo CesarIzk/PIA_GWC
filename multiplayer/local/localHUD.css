@@ -94,4 +94,26 @@
         font-size: 28px;
       }
     }
+    @media (max-width: 768px) {
+  #hud {
+    transform: scale(1.3);
+    top: 10px;
+  }
+
+  .valor {
+    font-size: 1.4rem;
+  }
+
+  #btnPause {
+    width: 60px;
+    height: 60px;
+    bottom: 20px;
+    right: 20px;
+  }
+
+  #vidasContainer img {
+    width: 120px;
+  }
+}
+
   
