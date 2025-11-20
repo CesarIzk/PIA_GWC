@@ -1,38 +1,97 @@
-// gameplay/objectSpawner.js
+// ===================================================
+// 🍎 objectSpawner.js — Creación sincronizable
+// ===================================================
+
 import * as THREE from "three";
 import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
 import { getAssetPath } from "../core/pathManager.js";
 
 const textureLoader = new THREE.TextureLoader();
-const comidaModelos = [
+export const comidaModelos = [
   "ajo", "banana", "bellota", "calabaza",
   "cebolla", "cereza", "chayote", "chicharos"
 ];
-
 /**
- * Crea y lanza un objeto (bomba o fruta) dentro del escenario
+ * Crear objeto sincronizable.
+ * RETORNA INMEDIATAMENTE un placeholder que se reemplaza cuando carga el modelo.
+ * 
+ * - En modo local/offline: elige el modelo aleatoriamente.
+ * - En modo online: si se pasa forcedNombre, usa ese modelo exacto
+ *   para que ambos jugadores vean la misma comida.
  */
-export function crearObjeto(scene, objetos, config, debugVisible) {
+export function crearObjeto(
+  scene,
+  objetos,
+  config,
+  debugVisible = false,
+  forcedX = null,
+  forcedBomba = null,
+  forcedY = null,
+  forcedVelX = null,
+  forcedVelY = null,
+  forcedId = null,
+  forcedNombre = null       // ⬅️ NUEVO: forzar modelo concreto
+) {
   const loader = new FBXLoader();
 
-  // === 1️⃣ Determinar tipo de objeto ===
-  const esBomba =
-    config.modo === "survival" ? true : Math.random() < config.probBomba;
+  // Opcional: evitar rutas internas de FBX (reduce problemas de texturas internas)
+  loader.setResourcePath("");
+  loader.setPath("");
 
+  // === Tipo (bomba o comida) ===
+  const esBomba = forcedBomba !== null
+    ? forcedBomba
+    : Math.random() < config.probBomba;
+
+  // === Nombre de modelo ===
+  // - Si viene forzado (desde el servidor), lo usamos tal cual.
+  // - Si no, lo elegimos aleatoriamente (modo local / host).
   const nombre = esBomba
     ? "bomba"
-    : comidaModelos[Math.floor(Math.random() * comidaModelos.length)];
+    : (forcedNombre ?? comidaModelos[Math.floor(Math.random() * comidaModelos.length)]);
+
+  // === Posición sincronizada ===
+  const posX = forcedX ?? (Math.random() - 0.5) * 16;
+  const posY = forcedY ?? (10 + Math.random() * 3);
+  const velX = forcedVelX ?? (esBomba ? (-Math.sign(posX) * (0.015 + Math.random() * 0.025)) : 0);
+  const velY = forcedVelY ?? (esBomba ? (-0.05 - Math.random() * 0.04) : 0);
 
   const rutaModelo = getAssetPath(
     esBomba ? "Assets/bomb/source/bomb.fbx" : `Assets/comida/${nombre}.fbx`
   );
   const rutaTextura = getAssetPath(`Assets/comida/${nombre}.png`);
 
-  // === 2️⃣ Cargar modelo ===
+  // 🟢 CREAR PLACEHOLDER INMEDIATO (invisible pero funcional)
+  const placeholder = new THREE.Mesh(
+    new THREE.BoxGeometry(0.5, 0.5, 0.5),
+    new THREE.MeshBasicMaterial({
+      color: esBomba ? 0xff0000 : 0x00ff00,
+      transparent: true,
+      opacity: debugVisible ? 0.3 : 0 // invisible por defecto
+    })
+  );
+
+  placeholder.position.set(posX, posY, 2);
+  placeholder.userData.esBomba = esBomba;
+  placeholder.userData.colisionado = false;
+  placeholder.userData.loading = true;
+  placeholder.userData.nombre = nombre;   // ⬅️ IMPORTANTE: guardar tipo
+  placeholder.userData.id = forcedId ?? null;
+
+  // Velocidad para bombas
+  if (esBomba) {
+    placeholder.userData.velocidad = new THREE.Vector3(velX, velY, 0);
+  }
+
+  // 🔥 AGREGAR INMEDIATAMENTE a la escena y array
+  scene.add(placeholder);
+  objetos.push(placeholder);
+
+  // 🔄 Cargar modelo real en segundo plano
   loader.load(
     rutaModelo,
     (objeto) => {
-      // === Material ===
+      // Material (solo comida, la bomba puede usar lo que traiga su FBX)
       if (!esBomba) {
         const textura = textureLoader.load(rutaTextura);
         objeto.traverse((child) => {
@@ -42,65 +101,37 @@ export function crearObjeto(scene, objetos, config, debugVisible) {
               roughness: 0.4,
               metalness: 0.1,
             });
-            child.castShadow = child.receiveShadow = true;
+            child.material.needsUpdate = true;
           }
         });
-      } else {
-        objeto.traverse((child) => {
-          if (child.isMesh) child.castShadow = child.receiveShadow = true;
-        });
       }
 
-      // === 3️⃣ Posición inicial ===
-      // Jugadores ocupan de -8 a +8 → usamos ese rango completo
-      const rangoX = 16;
-      const posX = (Math.random() - 0.5) * rangoX; // -8 a +8
-      const posY = 10 + Math.random() * 3;
-      const posZ = 2;
-
+      // Copiar propiedades del placeholder
+      objeto.position.copy(placeholder.position);
       objeto.scale.setScalar(esBomba ? 0.01 : 0.016);
-      objeto.position.set(posX, posY, posZ);
 
-      // === 4️⃣ Movimiento inicial ===
-      if (esBomba) {
-        // Movimiento con ligera curva hacia el centro
-        const direccion = new THREE.Vector3(
-          -Math.sign(posX) * (0.015 + Math.random() * 0.025), // horizontal
-          -0.05 - Math.random() * 0.04, // vertical
-          0
-        );
-        objeto.userData.velocidad = direccion;
-      }
-
-      // === 5️⃣ Metadatos ===
       objeto.userData = {
-        esBomba,
-        colisionado: false,
-        tiempoDeVida: 0,
+        ...placeholder.userData,
+        loading: false
       };
 
-      // === 6️⃣ Debug Helper ===
-      const color = esBomba ? 0xff3333 : 0x33ff99;
-      const helper = new THREE.Box3Helper(
-        new THREE.Box3().setFromObject(objeto),
-        color
-      );
-      helper.visible = debugVisible;
-      helper.userData.isDebugHelper = true;
-      objeto.userData.debugBox = helper;
-
-      // === 7️⃣ Añadir al escenario ===
-      scene.add(helper);
+      // 🔄 REEMPLAZAR placeholder en la escena
+      scene.remove(placeholder);
       scene.add(objeto);
-      objetos.push(objeto);
 
-      console.log(
-        `🍎 Objeto creado: ${nombre} (${esBomba ? "bomba" : "fruta"}) en X=${posX.toFixed(
-          2
-        )}`
-      );
+      // 🔄 REEMPLAZAR en el array
+      const index = objetos.indexOf(placeholder);
+      if (index !== -1) {
+        objetos[index] = objeto;
+      }
     },
     undefined,
-    (err) => console.error("⚠️ Error al cargar modelo:", rutaModelo, err)
+    (error) => {
+      console.error("❌ Error cargando objeto:", rutaModelo, error);
+      // El placeholder sigue funcionando aunque falle la carga
+      // (y mantiene id, nombre, esBomba, etc.)
+    }
   );
+
+  return placeholder;
 }

@@ -3,10 +3,6 @@ import * as THREE from "three";
 import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
 import { getAssetPath } from "./pathManager.js";
 
-// core/sceneManager.js
-import * as THREE from "three";
-import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
-import { getAssetPath } from "./pathManager.js";
 
 export function createScene() {
   const scene = new THREE.Scene();

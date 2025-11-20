@@ -1,107 +1,268 @@
+/* ===============================
+   🌐 PUBLIC HUD - FOOD FRENZY
+   =============================== */
 
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: #3a4a6b;
-      font-family: Arial, sans-serif;
-      color: white;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
-    #hud {
-      position: fixed;
-      top: 10px;
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      padding: 0 20px;
-      pointer-events: none;
-      z-index: 10;
-    }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-    .hudBox {
-      background: rgba(0, 0, 0, 0.5);
-      padding: 15px 25px;
-      border-radius: 12px;
-      border: 2px solid #fff;
-      text-align: center;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    }
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #3a4a6b;
+  font-family: 'Poppins', Arial, sans-serif;
+  color: white;
+}
 
-    .hudBox img {
-      height: 40px;
-      width: auto;
-      object-fit: contain;
-      image-rendering: pixelated;
-      filter: drop-shadow(0 0 4px rgba(255, 0, 0, 0.6));
-    }
+/* ==========================
+   🎯 HUD PRINCIPAL
+========================== */
+#hud {
+  position: fixed;
+  top: 10px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0 20px;
+  pointer-events: none;
+  z-index: 10;
+  gap: 15px;
+}
 
-    .playerName {
-      font-size: 14px;
-      font-weight: bold;
-      color: #ffcc00;
-      margin-bottom: 8px;
-      letter-spacing: 1px;
-      text-shadow: 0 0 8px rgba(255, 204, 0, 0.8);
-    }
+/* ==========================
+   📦 CAJAS DE HUD
+========================== */
+.hudBox {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  padding: 15px 25px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease;
+}
 
-    .puntos {
-      font-size: 32px;
-      font-weight: bold;
-      color: white;
-      text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-      margin: 5px 0;
-    }
+.hudBox:hover {
+  transform: scale(1.02);
+}
 
-    .controlsHint {
-      font-size: 11px;
-      color: #aaa;
-      margin-top: 5px;
-    }
+.hudBox img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 4px rgba(255, 0, 0, 0.6));
+  margin-bottom: 5px;
+}
 
-    /* Tiempo en el centro */
-    #tiempoBox {
-      background: rgba(255, 100, 0, 0.3);
-      border-color: #ff6400;
-    }
+/* ==========================
+   👤 INFORMACIÓN DEL JUGADOR
+========================== */
+.playerName {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffcc00;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px rgba(255, 204, 0, 0.8);
+  text-transform: uppercase;
+}
 
-    #tiempoBox .tiempo {
-      font-size: 36px;
-      font-weight: bold;
-      color: #fff;
-      text-shadow: 0 0 15px rgba(255, 100, 0, 1);
-    }
+.puntos {
+  font-size: 32px;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  margin: 5px 0;
+  line-height: 1;
+}
 
-    #tiempoBox .label {
-      font-size: 12px;
-      color: #ffcc00;
-      letter-spacing: 2px;
-    }
+.controlsHint {
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 5px;
+  letter-spacing: 0.5px;
+}
 
-    /* Responsive */
-    @media (max-width: 768px) {
-      #hud {
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-      }
+/* ==========================
+   ⏱️ CAJA DE TIEMPO
+========================== */
+#tiempoBox {
+  background: rgba(255, 100, 0, 0.4);
+  backdrop-filter: blur(5px);
+  border-color: #ff6400;
+  min-width: 150px;
+}
 
-      .hudBox {
-        width: 90%;
-        max-width: 300px;
-      }
+#tiempoBox .tiempo {
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 15px rgba(255, 100, 0, 1);
+  line-height: 1;
+}
 
-      .puntos {
-        font-size: 28px;
-      }
-    }
-    @media (max-width: 768px) {
+#tiempoBox .label {
+  font-size: 12px;
+  color: #ffcc00;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+/* ==========================
+   💙 CONTENEDOR DE VIDAS
+========================== */
+#vidasContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+#vidasContainer img {
+  width: 100px;
+  height: auto;
+  transition: transform 0.2s ease;
+}
+
+/* ==========================
+   ⏸️ BOTÓN PAUSA
+========================== */
+#btnPause {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 70px;
+  height: 70px;
+  background: rgba(255, 100, 0, 0.9);
+  border: 3px solid white;
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: all;
+  z-index: 100;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+#btnPause:hover {
+  transform: scale(1.1);
+  background: rgba(255, 130, 0, 1);
+  box-shadow: 0 6px 20px rgba(255, 100, 0, 0.6);
+}
+
+#btnPause:active {
+  transform: scale(0.95);
+}
+
+/* ==========================
+   🔌 INDICADOR DE CONEXIÓN
+========================== */
+.connection-status {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.connection-status.connected {
+  color: #00ff88;
+}
+
+.connection-status.disconnected {
+  color: #ff4444;
+}
+
+/* ==========================
+   📱 RESPONSIVE - TABLET
+========================== */
+@media (max-width: 1024px) {
   #hud {
-    transform: scale(1.3);
-    top: 10px;
+    padding: 0 15px;
   }
 
-  .valor {
-    font-size: 1.4rem;
+  .hudBox {
+    padding: 12px 20px;
+  }
+
+  .puntos {
+    font-size: 28px;
+  }
+
+  #tiempoBox .tiempo {
+    font-size: 32px;
+  }
+}
+
+/* ==========================
+   📱 RESPONSIVE - MÓVIL
+========================== */
+@media (max-width: 768px) {
+  #hud {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 0 10px;
+    top: 5px;
+    gap: 8px;
+  }
+
+  .hudBox {
+    width: calc(50% - 4px);
+    min-width: 140px;
+    padding: 10px 15px;
+  }
+
+  #tiempoBox {
+    width: 100%;
+    order: -1;
+    margin-bottom: 5px;
+  }
+
+  .playerName {
+    font-size: 12px;
+    margin-bottom: 5px;
+  }
+
+  .puntos {
+    font-size: 24px;
+  }
+
+  .controlsHint {
+    font-size: 9px;
+  }
+
+  #tiempoBox .tiempo {
+    font-size: 28px;
+  }
+
+  #tiempoBox .label {
+    font-size: 10px;
+  }
+
+  .hudBox img {
+    height: 30px;
+  }
+
+  #vidasContainer img {
+    width: 80px;
   }
 
   #btnPause {
@@ -109,11 +270,111 @@
     height: 60px;
     bottom: 20px;
     right: 20px;
+    font-size: 20px;
   }
 
-  #vidasContainer img {
-    width: 120px;
+  .connection-status {
+    font-size: 10px;
+    padding: 6px 12px;
   }
 }
 
-  
+/* ==========================
+   📱 RESPONSIVE - MÓVIL PEQUEÑO
+========================== */
+@media (max-width: 480px) {
+  #hud {
+    padding: 0 5px;
+    top: 3px;
+    gap: 5px;
+  }
+
+  .hudBox {
+    width: calc(50% - 2.5px);
+    min-width: 120px;
+    padding: 8px 12px;
+  }
+
+  .playerName {
+    font-size: 11px;
+  }
+
+  .puntos {
+    font-size: 20px;
+  }
+
+  .controlsHint {
+    font-size: 8px;
+  }
+
+  #tiempoBox .tiempo {
+    font-size: 24px;
+  }
+
+  #tiempoBox .label {
+    font-size: 9px;
+  }
+
+  .hudBox img {
+    height: 25px;
+  }
+
+  #vidasContainer img {
+    width: 60px;
+  }
+
+  #btnPause {
+    width: 50px;
+    height: 50px;
+    bottom: 15px;
+    right: 15px;
+    font-size: 18px;
+  }
+
+  .connection-status {
+    font-size: 9px;
+    padding: 5px 10px;
+    top: 5px;
+  }
+}
+
+/* ==========================
+   🔄 LANDSCAPE MODE
+========================== */
+@media (max-width: 768px) and (orientation: landscape) {
+  #hud {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+
+  .hudBox {
+    width: auto;
+    min-width: 100px;
+    padding: 8px 15px;
+  }
+
+  #tiempoBox {
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .puntos {
+    font-size: 20px;
+  }
+
+  #tiempoBox .tiempo {
+    font-size: 24px;
+  }
+
+  #btnPause {
+    width: 50px;
+    height: 50px;
+    bottom: 10px;
+    right: 10px;
+  }
+
+  .connection-status {
+    top: 5px;
+  }
+}

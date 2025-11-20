@@ -1,86 +1,123 @@
-// ==============================================
-// 🎮 Game Loop Multijugador (Local / Online compatible)
-// ==============================================
+// ===============================================================
+// 🎮 Game Loop Multijugador FIXED
+// ===============================================================
 import * as THREE from "three";
+
 const esMovil = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-// === 📱 Control táctil
+
+// ==========================
+// 📱 INPUT (Touch)
+// ==========================
 if (esMovil) {
-  window.addEventListener("touchstart", (e) => {
-    window.touchX = e.touches[0].clientX;
-  });
-  window.addEventListener("touchmove", (e) => {
-    window.touchX = e.touches[0].clientX;
-  });
-  window.addEventListener("touchend", () => {
-    window.touchX = null;
-  });
+  window.addEventListener("touchstart", e => window.touchX = e.touches[0].clientX);
+  window.addEventListener("touchmove",  e => window.touchX = e.touches[0].clientX);
+  window.addEventListener("touchend",   () => window.touchX = null);
 }
 
-export function startGameLoopMulti(
-  scene,
-  camera,
-  renderer,
-  players,
-  objetos,
-  config,
-  perderVida,
-  ganarPuntos,
-  hud,
-  red = null // opcional: { socket, role, room }
-) {
+// ==================================================
+export function startGameLoopMulti({ 
+  scene, 
+  camera, 
+  renderer, 
+  players, 
+  objetos, 
+  config, 
+  net, 
+  sync, 
+  hud, 
+  perderVida, 
+  ganarPuntos 
+}) {
+
   let gravedad = config.gravedad;
   const gravedadMax = 0.18;
   const teclas = {};
   let activo = true;
 
-  // === Controles ===
-  window.addEventListener("keydown", (e) => (teclas[e.key] = true));
-  window.addEventListener("keyup", (e) => delete teclas[e.key]);
+  const esOnline = !!net;
+  const miRol = net?.role || null;
 
-  // === Lógica frame a frame ===
-  function update() {
+  // =============== INPUT KEYBOARD =================
+  window.addEventListener("keydown", (e) => teclas[e.key] = true);
+  window.addEventListener("keyup",   (e) => delete teclas[e.key]);
+
+  // Posición throttle
+  let ultimaPosEnviada = 0;
+  const INTERVALO_SYNC = 50;
+
+  // ==================================================
+  // 🔄 UPDATE — Frame a Frame
+  // ==================================================
+  function update(dt) {
     if (!activo) return;
 
-if (esMovil) {
-  // --- 📱 Control táctil (arrastre horizontal)
-  if (!window.touchX) return;
-  const mitadPantalla = window.innerWidth / 2;
+    let miJugadorRef = null;
+    let huboMovimiento = false;
 
-  if (!red || red.role === "player1") {
-    // toca mitad izquierda para mover jugador 1
-    if (window.touchX < mitadPantalla / 2) players.player1.position.x -= 0.2;
-    else if (window.touchX < mitadPantalla) players.player1.position.x += 0.2;
-  }
-  if (!red || red.role === "player2") {
-    // toca mitad derecha para mover jugador 2
-    if (window.touchX > mitadPantalla && window.touchX < mitadPantalla * 1.5)
-      players.player2.position.x -= 0.2;
-    else if (window.touchX > mitadPantalla * 1.5)
-      players.player2.position.x += 0.2;
-  }
-} else {
-  // --- 💻 Controles de teclado
-  if (!red || red.role === "player1") {
-    if (teclas["a"]) players.player1.position.x -= 0.15;
-    if (teclas["d"]) players.player1.position.x += 0.15;
-  }
-  if (!red || red.role === "player2") {
-    if (teclas["ArrowLeft"]) players.player2.position.x -= 0.15;
-    if (teclas["ArrowRight"]) players.player2.position.x += 0.15;
-  }
-}
+    // ============== MODO LOCAL ======================
+    if (!esOnline) {
+      if (teclas["a"] || teclas["A"]) players.player1.position.x -= 0.15;
+      if (teclas["d"] || teclas["D"]) players.player1.position.x += 0.15;
 
-    // Limitar movimiento lateral
-    players.player1.position.x = Math.max(-8, Math.min(0, players.player1.position.x));
-    players.player2.position.x = Math.max(0, Math.min(8, players.player2.position.x));
+      if (teclas["ArrowLeft"])  players.player2.position.x -= 0.15;
+      if (teclas["ArrowRight"]) players.player2.position.x += 0.15;
 
-    // === Enviar posición al otro jugador (modo online)
-    if (red && red.socket.readyState === WebSocket.OPEN) {
-      const pos = red.role === "player1" ? players.player1.position.x : players.player2.position.x;
-      red.socket.send(JSON.stringify({ type: "pos", room: red.room, x: pos }));
+      players.player1.position.x = Math.max(-8, Math.min(0, players.player1.position.x));
+      players.player2.position.x = Math.max(0,  Math.min(8, players.player2.position.x));
     }
 
-    // === Cajas de colisión precisas ===
+    // ============== MODO ONLINE =====================
+    else {
+      let p = null;
+
+      if (miRol === "player1") p = players.player1;
+      else                    p = players.player2;
+
+      const prev = p.position.x;
+
+      if (!esMovil) {
+        if (teclas["a"] || teclas["A"] || teclas["ArrowLeft"])  p.position.x -= 0.15;
+        if (teclas["d"] || teclas["D"] || teclas["ArrowRight"]) p.position.x += 0.15;
+      } 
+      else { 
+        if (window.touchX) {
+          const m = window.innerWidth / 2;
+          if (window.touchX < m) p.position.x -= 0.20;
+          else p.position.x += 0.20;
+        }
+      }
+
+      // Límites según rol
+      if (miRol === "player1") {
+        p.position.x = Math.max(-8, Math.min(0, p.position.x));
+      } else {
+        p.position.x = Math.max(0, Math.min(8, p.position.x));
+      }
+
+      if (p.position.x !== prev) {
+        miJugadorRef = p;
+        huboMovimiento = true;
+      }
+    }
+
+    // =============== POS SYNC (HOST / CLIENTE) ==================
+    if (esOnline && huboMovimiento && miJugadorRef) {
+      const ahora = performance.now();
+      if (ahora - ultimaPosEnviada > INTERVALO_SYNC) {
+        net.send({
+          type: "pos",
+          room: net.room,
+          player: net.role,
+          x: miJugadorRef.position.x
+        });
+        ultimaPosEnviada = ahora;
+      }
+    }
+
+    // ========== UPDATE REMOTO (Interpolación) ===================
+    if (esOnline) sync.updateRemote(dt);
+
+    // ==================== OBJETOS / COLISIONES ==================
     const box1 = new THREE.Box3().setFromCenterAndSize(
       new THREE.Vector3(players.player1.position.x, players.player1.position.y + 0.6, players.player1.position.z),
       new THREE.Vector3(3.2, 1.6, 2.0)
@@ -91,77 +128,125 @@ if (esMovil) {
       new THREE.Vector3(3.2, 1.6, 2.0)
     );
 
-    // === Actualizar objetos ===
     for (let i = objetos.length - 1; i >= 0; i--) {
       const obj = objetos[i];
-      if (!obj) continue;
 
-      // Caída
+      // 🔥 Validar objeto
+      if (!obj || !obj.position) {
+        console.warn("🔥 Objeto inválido eliminado");
+        objetos.splice(i, 1);
+        continue;
+      }
+
+      // ⏳ Objeto aún cargando → no colisionar pero sí mover
+      if (obj.userData.loading) {
+        const g = obj.userData.esBomba ? gravedad * 1.3 : gravedad;
+        obj.position.y -= g;
+
+        if (obj.userData.esBomba && obj.userData.velocidad) {
+          obj.position.add(obj.userData.velocidad);
+        }
+        continue;
+      }
+
+      // 🔄 Física normal
       const g = obj.userData.esBomba ? gravedad * 1.3 : gravedad;
       obj.position.y -= g;
 
-      // Movimiento lateral (solo bombas)
       if (obj.userData.esBomba && obj.userData.velocidad) {
         obj.position.add(obj.userData.velocidad);
       }
 
-      // Si sale del mapa
+      // 🗑️ Caída fuera del mapa
       if (obj.position.y < -3.5) {
+        if (esOnline && miRol === "player1" && obj.userData.id) {
+          net.send({
+            type: "despawn",
+            room: net.room,
+            id: obj.userData.id
+          });
+        }
+
         scene.remove(obj);
         objetos.splice(i, 1);
         continue;
       }
 
-      // Colisión
-      const objBox = new THREE.Box3().setFromObject(obj);
+      // 🚫 Ya colisionado → ignorar
       if (obj.userData.colisionado) continue;
 
-      // === Jugador 1 ===
+      // 📦 Bounding box del objeto
+      const objBox = new THREE.Box3().setFromObject(obj);
+
+      // 💥 COLISIÓN JUGADOR 1
       if (box1.intersectsBox(objBox)) {
+        if (esOnline && miRol === "player1" && obj.userData.id) {
+          net.send({
+            type: "despawn",
+            room: net.room,
+            id: obj.userData.id
+          });
+        }
+
         obj.userData.colisionado = true;
         scene.remove(obj);
         objetos.splice(i, 1);
 
-        if (obj.userData.esBomba) {
-          perderVida(1);
-          hud.flashHUD?.(); // efecto visual
-        } else if (config.modo === "clasico") {
-          ganarPuntos(1);
-        }
+        if (obj.userData.esBomba) perderVida(1);
+        else ganarPuntos(1);
+
+        hud.flashHUD?.();
         continue;
       }
 
-      // === Jugador 2 ===
+      // 💥 COLISIÓN JUGADOR 2
       if (box2.intersectsBox(objBox)) {
+        if (esOnline && miRol === "player1" && obj.userData.id) {
+          net.send({
+            type: "despawn",
+            room: net.room,
+            id: obj.userData.id
+          });
+        }
+
         obj.userData.colisionado = true;
         scene.remove(obj);
         objetos.splice(i, 1);
 
-        if (obj.userData.esBomba) {
-          perderVida(2);
-          hud.flashHUD?.();
-        } else if (config.modo === "clasico") {
-          ganarPuntos(2);
-        }
+        if (obj.userData.esBomba) perderVida(2);
+        else ganarPuntos(2);
+
+        hud.flashHUD?.();
         continue;
       }
     }
 
-    // Incrementar gravedad progresivamente
     gravedad = Math.min(gravedadMax, gravedad + 0.00004);
   }
 
+  // ==================================================
+  // 🔁 LOOP PRINCIPAL
+  // ==================================================
+  let last = performance.now();
+
   function loop() {
-    requestAnimationFrame(loop);
-    update();
+    if (!activo) return;
+
+    const now = performance.now();
+    const dt = (now - last) * 0.06;
+    last = now;
+
+    update(dt);
+
     renderer.render(scene, camera);
+    requestAnimationFrame(loop);
   }
 
   loop();
 
   return {
-    detener: () => (activo = false),
-    reanudar: () => (activo = true),
-    isRunning: () => activo,
+    detener: () => activo = false,
+    reanudar: () => activo = true,
+    isRunning: () => activo
   };
 }

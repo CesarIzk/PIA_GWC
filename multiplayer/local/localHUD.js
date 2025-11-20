@@ -64,17 +64,21 @@ window.addEventListener("keydown", (e) => {
 
 // === 4️⃣ Cargar jugadores y arrancar ===
 loadPlayers(scene).then(({ player1, player2 }) => {
-  loopControl = startGameLoopMulti(
+loopControl = startGameLoopMulti({
     scene,
     camera,
     renderer,
-    { player1, player2 },
+    players: { player1, player2 },
     objetos,
     config,
+    hud,
     perderVida,
     ganarPuntos,
-    hud
-  );
+    net: null,   // importante para modo local
+    sync: null
+});
+
+
 // Aumentar probabilidad de bomba dinámicamente cada 20 segundos
 if (config.dinamico) {
   setInterval(() => {

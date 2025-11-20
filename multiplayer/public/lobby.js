@@ -1,97 +1,133 @@
-// ================================
-// 🎮 Food Frenzy - Lobby Online
-// ================================
+// ============================================
+// 🎮 Food Frenzy - Lobby Moderno (Matchmaking) FIXED
+// ============================================
 
-// 💡 Detección automática de entorno (igual que en publicHUD)
 const WS_URL =
-  window.location.hostname === "localhost" ||
-  window.location.hostname.startsWith("192.")
-    ? "ws://192.168.100.237:8080" // ⚙️ IP local
-    : `wss://${window.location.hostname}`; // 🌐 Railway
+  location.hostname === "localhost" ||
+  location.hostname.startsWith("192.")
+    ? "ws://192.168.100.237:8080"
+    : `wss://${location.hostname}`;
 
-const socket = new WebSocket(WS_URL);
-console.log(`🌐 Conectando a ${WS_URL} ...`);
+let socket = null;
 
-// ================================
-// 📦 Referencias del DOM
-// ================================
-const infoBox = document.getElementById("infoBox");
-const esperaBox = document.getElementById("esperaBox");
-const iniciarBox = document.getElementById("iniciarBox");
-const codigoSala = document.getElementById("codigoSala");
-const rolJugador = document.getElementById("rolJugador");
-const btnJugar = document.getElementById("btnJugar");
+// DOM
+const menu = document.getElementById("menuOptions");
+const matchBox = document.getElementById("matchStatus");
+const matchText = document.getElementById("matchText");
 
-let roomCode = null;
-let role = null;
+const roomBox = document.getElementById("roomBox");
+const roomCodeDisplay = document.getElementById("roomCodeDisplay");
 
-// ================================
-// 🚀 Conexión al servidor
-// ================================
-socket.addEventListener("open", () => {
-  console.log("✅ Conectado al servidor WebSocket");
-  infoBox.textContent = "Conectado al servidor...";
-});
+// =========================
+// Mostrar estado
+// =========================
+function showStatus(text) {
+  menu.classList.add("hidden");
+  matchBox.classList.remove("hidden");
+  matchText.textContent = text;
+}
 
-socket.addEventListener("message", (event) => {
-  const data = JSON.parse(event.data);
+// =========================
+// Conectar WebSocket
+// =========================
+function startSocket(onReady) {
+  socket = new WebSocket(WS_URL);
+  socket.ignoreClose = false;
 
-  // 🏠 Sala creada
-  if (data.type === "roomCreated") {
-    roomCode = data.code;
-    infoBox.textContent = "";
-    esperaBox.classList.remove("hidden");
-    codigoSala.textContent = roomCode;
-    rolJugador.textContent = "Esperando jugador 2...";
-  }
+  socket.addEventListener("open", () => {
+    showStatus("Conectado al servidor...");
+    onReady();
+  });
 
-  // ⚠️ Error del servidor
-  if (data.type === "error") {
-    alert(`⚠️ ${data.message}`);
-    infoBox.textContent = "";
-  }
+  socket.addEventListener("message", (e) => {
+    const data = JSON.parse(e.data);
 
-  // 🎬 Inicio de partida (nuevo servidor usa "startGame")
-  if (data.type === "startGame") {
-    roomCode = data.code;
-    role = data.role;
+    // -------------------------
+    // 🏠 SALA CREADA
+    // -------------------------
+    if (data.type === "roomCreated") {
+      roomBox.classList.remove("hidden");
+      roomCodeDisplay.textContent = data.code;
 
-    infoBox.textContent = "";
-    esperaBox.classList.add("hidden");
-    iniciarBox.classList.remove("hidden");
+      localStorage.setItem("multiplayerSession", JSON.stringify({
+        roomCode: data.code,
+        role: "player1",
+        wsURL: WS_URL
+      }));
 
-    rolJugador.textContent =
-      role === "player1" ? "Jugador 1 🥦 (verde)" : "Jugador 2 🌶️ (rojo)";
+      showStatus("Esperando jugador...");
+    }
 
-    // Guardar datos para el HUD
-    localStorage.setItem("multiplayerSession", JSON.stringify({ roomCode, role }));
-  }
-});
+    // -------------------------
+    // 🎮 INICIO DE PARTIDA (FIX)
+    // -------------------------
+    if (data.type === "startGame") {
 
-socket.addEventListener("close", () => {
-  infoBox.textContent = "❌ Conexión perdida con el servidor.";
-});
+      // Guardamos la sesión
+      localStorage.setItem("multiplayerSession", JSON.stringify({
+        roomCode: data.code,
+        role: data.role,
+        wsURL: WS_URL
+      }));
 
-// ================================
-// 🧩 Botones
-// ================================
+      // Marcamos que venimos del lobby
+      localStorage.setItem("fromLobby", "1");
+
+      // 👇 MUY IMPORTANTE: evitar "close" inesperado
+      socket.ignoreClose = true;
+
+      showStatus("Jugador encontrado. Iniciando partida...");
+
+      setTimeout(() => {
+        // NO cerrar el socket manualmente
+        window.location.href = "publicHUD.html";
+      }, 700);
+    }
+
+    // -------------------------
+    // ❌ ERROR
+    // -------------------------
+    if (data.type === "error") {
+      alert(data.message);
+      location.reload();
+    }
+  });
+
+  // =========================
+  // NO REACCIONAR AL CIERRE
+  // =========================
+  socket.addEventListener("close", () => {
+    if (socket.ignoreClose) {
+      console.log("⚪ Lobby cerró pero está en modo fantasma (OK)");
+      return;
+    }
+
+    console.log("❌ Socket del lobby se cerró antes de tiempo");
+  });
+}
+
+// =========================
+// 🎮 Crear Sala
+// =========================
 document.getElementById("btnCrear").addEventListener("click", () => {
-  socket.send(JSON.stringify({ type: "create" }));
-  infoBox.textContent = "Creando sala...";
+  showStatus("Conectando...");
+  startSocket(() => {
+    socket.send(JSON.stringify({ type: "create" }));
+    showStatus("Creando sala...");
+  });
 });
 
+// =========================
+// 🎮 Unirse a Sala
+// =========================
 document.getElementById("btnUnirse").addEventListener("click", () => {
-  const code = prompt("Introduce el código de la sala:");
+  const code = prompt("Código de sala:");
   if (!code) return;
-  socket.send(JSON.stringify({ type: "join", code }));
-  infoBox.textContent = "Uniéndose a la sala...";
-});
 
-btnJugar.addEventListener("click", () => {
-  if (!roomCode || !role) {
-    alert("⚠️ Espera a que se inicie la partida primero.");
-    return;
-  }
+  showStatus("Conectando...");
 
-  window.location.href = "publicHUD.html";
+  startSocket(() => {
+    socket.send(JSON.stringify({ type: "join", code }));
+    showStatus("Uniéndose a sala...");
+  });
 });

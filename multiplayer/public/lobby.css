@@ -301,3 +301,67 @@ body {
     width: 70px;
   }
 }
+/* ==============================
+   🎮 MATCHMAKING ANIMADO
+============================== */
+
+.match-box {
+  background-color: rgba(0, 0, 0, 0.35);
+  padding: 1.8rem;
+  border-radius: 15px;
+  margin-top: 1.5rem;
+  text-align: center;
+  animation: fadeIn 0.4s ease-out;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Spinner */
+.loader {
+  width: 55px;
+  height: 55px;
+  margin: 0 auto 1rem;
+  border: 6px solid rgba(255, 255, 255, 0.25);
+  border-top-color: var(--verde);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Estado */
+#matchText {
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+/* Oculto */
+.hidden {
+  display: none !important;
+}
+.room-box {
+  margin-top: 1rem;
+  padding: 1rem 1.2rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  text-align: center;
+  color: white;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.room-box p {
+  font-size: 1.1rem;
+  margin-bottom: 0.4rem;
+  opacity: 0.8;
+}
+
+#roomCodeDisplay {
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: var(--verde);
+  text-shadow: 0 0 10px rgba(0,255,153,0.5);
+}
