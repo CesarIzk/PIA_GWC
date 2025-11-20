@@ -71,7 +71,7 @@ export function crearObjeto(
     })
   );
 
-  placeholder.position.set(posX, posY, 2);
+  placeholder.position.set(posX, posY, 0);
   placeholder.userData.esBomba = esBomba;
   placeholder.userData.colisionado = false;
   placeholder.userData.loading = true;
@@ -114,6 +114,13 @@ export function crearObjeto(
         ...placeholder.userData,
         loading: false
       };
+// Caja de colisión fija para bombas (porque FBX es muy pequeño)
+if (objeto.userData.esBomba) {
+  objeto.userData.hitbox = new THREE.Box3().setFromCenterAndSize(
+    new THREE.Vector3(0, 0, 0),  // relativo al objeto
+    new THREE.Vector3(1.0, 1.0, 1.0)  // tamaño fijo para colisión
+  );
+}
 
       // 🔄 REEMPLAZAR placeholder en la escena
       scene.remove(placeholder);

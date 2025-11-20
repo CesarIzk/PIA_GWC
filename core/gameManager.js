@@ -9,6 +9,7 @@ import { loadPlayers } from "./playerManager.js";
 import { setupHUDMulti } from "../gameplay/hudManagerMulti.js";
 import { startGameLoopMulti } from "./gameLoopMulti.js";
 import { comidaModelos } from "../gameplay/objectSpawner.js"; // ⬅️ AÑADIDO
+import { reproducirMusica, detenerMusica, reproducirSFX } from "../../core/audioManager.js";
 
 
 export async function initOnlineGame(sessionData) {
@@ -32,10 +33,11 @@ export async function initOnlineGame(sessionData) {
   // 2) ESCENA + HUD + JUGADORES
   // ====================================================
   const { scene, camera, renderer } = createScene();
+  detenerMusica();
   const hud = setupHUDMulti();
   const players = await loadPlayers(scene);
   const objetos = [];
-
+reproducirMusica("Assets/musica/vibe.mp3");
   Sync.init(players, objetos, sessionData.config, hud, Net.role);
 
   // ====================================================
@@ -51,7 +53,7 @@ export async function initOnlineGame(sessionData) {
       juegoTerminado = true;
 
       console.log("🏁 Enviando fin del juego");
-
+detenerMusica();
       Net.send({
         type: "endGame",
         room: Net.room,
@@ -66,7 +68,7 @@ export async function initOnlineGame(sessionData) {
   // ====================================================
   function perderVida(jugador) {
     hud.perderVida(jugador);
-
+reproducirSFX("Assets/musica/explosion.mp3", 0.7);
     if (Net.role === "player1") {
       Net.send({
         type: "syncLife",

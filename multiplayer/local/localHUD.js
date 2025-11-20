@@ -5,10 +5,11 @@ import { setupHUDMulti } from "../../gameplay/hudManagerMulti.js";
 import { crearObjeto } from "../../gameplay/objectSpawner.js";
 import { startGameLoopMulti } from "../../core/gameLoopMulti.js";
 import { setupPauseMenu } from "../../gameplay/pauseMenu.js";
+import { reproducirMusica, detenerMusica, reproducirSFX } from "../../core/audioManager.js";
 
 // === 1️⃣ Inicialización ===
 const { scene, camera, renderer } = createScene();
-
+detenerMusica();
 // 🧠 Leer configuración del menú anterior (si existe)
 let config = getConfigMulti(); // base de dificultad
 const savedConfig = localStorage.getItem("configMultijugador");
@@ -38,7 +39,7 @@ if (savedConfig) {
 localStorage.removeItem("configMultijugador");
 
 const hud = setupHUDMulti();
-
+reproducirMusica("../../Assets/musica/vibe.mp3");
 console.log(`🎮 Modo activo: ${config.modo}`);
 
 // === 2️⃣ Variables globales ===
@@ -121,9 +122,9 @@ if (config.dinamico) {
 function perderVida(jugador) {
   if (jugador === 1) vidas1--;
   else vidas2--;
-
+reproducirSFX("../../Assets/musica/explosion.mp3", 0.7);
   hud.actualizarVidas(vidas1, vidas2);
-
+  
   // 🧩 Si el modo es survival, se gana por resistencia
   if (config.modo === "survival") {
     if (vidas1 <= 0 && vidas2 > 0) {
@@ -149,6 +150,7 @@ function ganarPuntos(jugador) {
   if (config.modo !== "clasico") return;
   if (jugador === 1) puntos1 += 10;
   else puntos2 += 10;
+    reproducirSFX("../../Assets/musica/coin.mp3", 0.7);
   hud.actualizarPuntos(puntos1, puntos2);
 }
 
@@ -168,7 +170,7 @@ function terminarJuego(ganadorForzado = null) {
       puntos1 > puntos2 ? "Jugador 1" :
       puntos2 > puntos1 ? "Jugador 2" : "Empate";
   }
-
+detenerMusica();
   const mensaje =
     config.modo === "survival"
       ? `💣 Modo Survival terminado!\n${ganador} resistió más tiempo.`

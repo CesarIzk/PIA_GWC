@@ -1,7 +1,7 @@
 // ==============================================
 // 🎮 FOOD FRENZY - MODO SOLO (PC + MÓVIL)
 // ==============================================
-
+import { guardarPuntuacion } from "./core/scoreClient.js";
 import { createScene } from "./core/sceneManager.js";
 import { loadPlayer } from "./core/playerManager.js";
 import { getConfig } from "./core/difficulty.js";
@@ -9,14 +9,20 @@ import { setupHUD } from "./gameplay/hudManager.js";
 import { crearObjeto } from "./gameplay/objectSpawner.js";
 import { startGameLoop } from "./core/gameLoop.js";
 import { setupPauseMenu } from "./gameplay/pauseMenu.js";
+import { reproducirMusica, detenerMusica, reproducirSFX } from "./core/audioManager.js";
+
+
 
 // === 📱 Detección de dispositivo móvil ===
 const esMovil = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 // === 1️⃣ Inicialización de escena y configuración ===
 const { scene, camera, renderer } = createScene();
+detenerMusica();
 const config = getConfig();
 const hud = setupHUD();
+// 🎵 Música del juego
+reproducirMusica("Assets/musica/vibe.mp3");
 
 // === 2️⃣ Variables globales ===
 let objetos = [];
@@ -157,36 +163,51 @@ function manejarMovimiento(player, delta) {
 
 // === 6️⃣ Lógica del juego ===
 function perderVida() {
+  reproducirSFX("Assets/musica/explosion.mp3", 0.7);
   vidas--;
   hud.actualizarVidas(vidas);
   if (vidas <= 0) terminarJuego(false);
+ 
+
 }
 
 function ganarPuntos() {
   if (config.modo === "clasico") {
     puntos += 10;
+    reproducirSFX("Assets/musica/coin.mp3", 0.7);
     hud.actualizarPuntos(puntos);
   }
 }
 
-function terminarJuego(victoria) {
-  loopControl.detener();
+async function terminarJuego(victoria) {
+  // detener loop
+  if (loopControl && loopControl.isRunning()) {
+    loopControl.detener();
+  }
 
-  // 💾 Guardar puntuación
-  const nombre = prompt("💾 Ingresa tu nombre para guardar tu récord:") || "Anónimo";
-  let puntuaciones = JSON.parse(localStorage.getItem("puntuaciones")) || [];
-  puntuaciones.push({ nombre, puntos });
-  puntuaciones.sort((a, b) => b.puntos - a.puntos);
-  puntuaciones = puntuaciones.slice(0, 10);
-  localStorage.setItem("puntuaciones", JSON.stringify(puntuaciones));
+  detenerMusica();
+
+  // pedir nombre
+  const nombre =
+    prompt("💾 Ingresa tu nombre para guardar tu récord:") || "Anónimo";
+
+  // 💾 guardar puntuación (localStorage + servicio web)
+  await guardarPuntuacion(nombre, puntos, config.modo);
 
   // 🏁 Mensaje final
   if (config.modo === "survival") {
-    alert(`💥 Te golpeó una bomba!\n⏱️ Sobreviviste ${puntos} segundos`);
+    alert(
+      `💥 Te golpeó una bomba!\n⏱️ Sobreviviste ${puntos} segundos`
+    );
   } else {
-    alert(victoria ? `🎉 ¡Ganaste!\n🌟 Puntos: ${puntos}` : `💥 Game Over\n🌟 Puntos: ${puntos}`);
+    alert(
+      victoria
+        ? `🎉 ¡Ganaste!\n🌟 Puntos: ${puntos}`
+        : `💥 Game Over\n🌟 Puntos: ${puntos}`
+    );
   }
 
   // 🔄 Ir a la pantalla de puntuaciones
   window.location.href = "puntuaciones.html";
 }
+

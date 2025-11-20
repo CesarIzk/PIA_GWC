@@ -183,3 +183,7 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
+input[type="range"] {
+  width: 150px;
+  margin-left: 15px;
+}

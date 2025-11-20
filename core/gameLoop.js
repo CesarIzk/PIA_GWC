@@ -33,31 +33,51 @@ export function startGameLoop(scene, camera, renderer, player, objetos, config, 
     objetivoX = Math.max(-8, Math.min(8, objetivoX));
     player.position.x += (objetivoX - player.position.x) * (1 - suavizado);
 
-    // === Movimiento de objetos ===
-    for (let i = objetos.length - 1; i >= 0; i--) {
-      const obj = objetos[i];
-      if (!obj) continue;
+  // Movimiento de objetos
+for (let i = objetos.length - 1; i >= 0; i--) {
+  const obj = objetos[i];
+  if (!obj) continue;
 
-      obj.userData.tiempoDeVida ??= 0;
-      obj.userData.tiempoDeVida++;
+  obj.userData.tiempoDeVida ??= 0;
+  obj.userData.tiempoDeVida++;
 
-      const g = obj.userData.esBomba ? gravedad * 1.3 : gravedad;
-      obj.position.y -= g;
+  const g = obj.userData.esBomba ? gravedad * 1.3 : gravedad;
 
-      // Eliminar si sale del mapa
-      if (obj.position.y < -3.5) {
-        scene.remove(obj);
-        objetos.splice(i, 1);
-        continue;
-      }
+  // gravedad vertical
+  obj.position.y -= g;
 
-      // Colisiones
-    // === Colisiones ===
+  // 🧨 MOVIMIENTO HORIZONTAL DE BOMBAS – FALTABA ESTO
+  if (obj.userData.esBomba && obj.userData.velocidad) {
+    obj.position.x += obj.userData.velocidad.x;
+  }
+
+  // eliminar si sale del mapa
+  if (obj.position.y < -3.5) {
+    scene.remove(obj);
+    objetos.splice(i, 1);
+    continue;
+  }
+
+
+
+
+
+     // === Colisiones ===
 const playerBox = new THREE.Box3().setFromCenterAndSize(
-  new THREE.Vector3(player.position.x, player.position.y + 0.6, 2), // 🔹 Z corregido
-  new THREE.Vector3(2.8, 1.5, 1.0) // 🔹 caja más gruesa
+  new THREE.Vector3(player.position.x, player.position.y + 0.6, player.position.z),
+  new THREE.Vector3(2.8, 1.5, 1.0)
 );
-const objBox = new THREE.Box3().setFromObject(obj);
+
+let objBox;
+
+if (obj.userData.esBomba && obj.userData.hitbox) {
+  // Caja fija para la bomba
+  objBox = obj.userData.hitbox.clone();
+  objBox.translate(obj.position);
+} else {
+  // Caja del modelo real (comida)
+  objBox = new THREE.Box3().setFromObject(obj);
+}
 
 if (!obj.userData.colisionado && playerBox.intersectsBox(objBox)) {
   obj.userData.colisionado = true;
@@ -68,6 +88,7 @@ if (!obj.userData.colisionado && playerBox.intersectsBox(objBox)) {
   scene.remove(obj);
   objetos.splice(i, 1);
 }
+
 
     }
 

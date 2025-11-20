@@ -1,13 +1,14 @@
 // =======================================
 // 🌐 FOOD FRENZY - Servidor WebSocket FIXED
 // =======================================
-
+import cors from "cors";
 import express from "express";
 import { WebSocketServer } from "ws";
 import http from "http";
 import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 const app = express();
 const server = http.createServer(app);
@@ -15,11 +16,72 @@ const wss = new WebSocketServer({ server });
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+app.use(cors());
+app.use(express.json());   // <-- para que funcione req.body
+
+// archivos estáticos
 app.use(express.static(__dirname));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
+});
+
+
+// ====================
+// 🧾 "BD" de puntajes en memoria
+// ====================
+const SCORES_FILE = path.join(__dirname, "scores.json");
+
+function cargarScores() {
+  try {
+    return JSON.parse(fs.readFileSync(SCORES_FILE, "utf8"));
+  } catch (e) {
+    return [];
+  }
+}
+
+function guardarScores(data) {
+  fs.writeFileSync(SCORES_FILE, JSON.stringify(data, null, 2));
+}
+// ====================
+// 🧾 BD permanente de puntajes
+// ====================
+
+// POST guardar
+app.post("/api/score", (req, res) => {
+  const { nombre, puntos, modo } = req.body;
+
+  if (!nombre || typeof puntos !== "number") {
+    return res.status(400).json({ error: "Datos inválidos" });
+  }
+
+  const scores = cargarScores();
+
+  const nuevo = {
+    nombre,
+    puntos,
+    modo: modo || "solo",
+    fecha: new Date().toISOString(),
+  };
+
+  scores.push(nuevo);
+  guardarScores(scores);
+
+  console.log("💾 Nuevo score guardado:", nuevo);
+
+  res.status(201).json({ ok: true });
+});
+
+// GET top 10
+app.get("/api/score/top", (req, res) => {
+  const scores = cargarScores();
+
+  const top = [...scores]
+    .sort((a, b) => b.puntos - a.puntos)
+    .slice(0, 10);
+
+  res.json(top);
 });
 
 // ====================
