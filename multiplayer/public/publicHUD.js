@@ -46,7 +46,7 @@ sessionData.config.tiempo = 60;
 // =========================
 sessionData.wsURL =
   location.hostname === "localhost" || location.hostname.startsWith("192.")
-    ? "ws://192.168.100.237:8080"
+    ? "ws://192.168.1.247:8080"
     : `wss://${location.hostname}`;
 
 // =========================
